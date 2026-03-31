@@ -1,0 +1,42 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "dev:bare": "next dev --port 3001"
+  },
+  "dependencies": {
+    "@my-dapp-home-work-30/api": "workspace:*",
+    "@my-dapp-home-work-30/env": "workspace:*",
+    "@my-dapp-home-work-30/ui": "workspace:*",
+    "@opennextjs/cloudflare": "^1.17.3",
+    "@tanstack/react-query": "^5.90.12",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "@trpc/tanstack-react-query": "^11.13.4",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "dotenv": "catalog:",
+    "lucide-react": "catalog:",
+    "next": "^16.2.0",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "sonner": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@my-dapp-home-work-30/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query-devtools": "^5.91.1",
+    "@types/node": "^20",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "alchemy": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "^5",
+    "wrangler": "^4.77.0"
+  }
+}

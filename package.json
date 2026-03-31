@@ -1,0 +1,35 @@
+{
+  "name": "my-dapp-home-work-30",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @my-dapp-home-work-30/db db:push",
+    "db:studio": "turbo -F @my-dapp-home-work-30/db db:studio",
+    "db:generate": "turbo -F @my-dapp-home-work-30/db db:generate",
+    "db:migrate": "turbo -F @my-dapp-home-work-30/db db:migrate",
+    "deploy": "turbo -F @my-dapp-home-work-30/infra deploy",
+    "destroy": "turbo -F @my-dapp-home-work-30/infra destroy"
+  },
+  "dependencies": {
+    "@my-dapp-home-work-30/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@my-dapp-home-work-30/config": "workspace:*",
+    "@types/node": "^22.13.14",
+    "turbo": "^2.8.12",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

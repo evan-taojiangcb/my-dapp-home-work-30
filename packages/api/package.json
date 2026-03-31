@@ -1,0 +1,28 @@
+{
+  "name": "@my-dapp-home-work-30/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@my-dapp-home-work-30/db": "workspace:*",
+    "@my-dapp-home-work-30/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "@types/pg": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@my-dapp-home-work-30/config": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "^5"
+  }
+}

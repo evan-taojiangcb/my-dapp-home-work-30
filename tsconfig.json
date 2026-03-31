@@ -1,0 +1,3 @@
+{
+  "extends": "@my-dapp-home-work-30/config/tsconfig.base.json"
+}
