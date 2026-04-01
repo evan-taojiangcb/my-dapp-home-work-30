@@ -138,6 +138,27 @@
 
 ---
 
+### [x] T-13: SSR 错误修复（WalletConnect indexedDB + ReactQueryDevtools）
+
+**类型**: fix
+**依赖**: T-12
+**验收标准**:
+- [x] `pnpm dev` 无 `indexedDB is not defined` 错误
+- [x] `pnpm dev` 无 `No QueryClient set` 错误
+- [x] `pnpm build` 构建成功
+- [x] Playwright MCP 验证页面返回 200
+- [x] ReactQueryDevtools 移入 WalletDynamicProviders
+
+**修复内容**:
+- 创建 `providers-dynamic.tsx`（ssr:false 动态入口）
+- 创建 `wallet-providers.tsx`（统一 wagmi + RainbowKit + Solana）
+- `providers.tsx` 移除所有钱包导入，只保留 base providers
+- `layout.tsx` 使用 `WalletDynamicProviders`
+- `ethereum-provider.tsx`、`solana-provider.tsx`、`wallet/index.ts` 已删除（合并入 `wallet-providers.tsx`）
+- `wallet-display.tsx` 已删除（未使用）
+
+---
+
 ## 预估工时
 
 | 任务 | 预估 | 实际 |
@@ -147,7 +168,8 @@
 | T-08 ~ T-10（UI 组件 + 集成） | 30 min | 15 min |
 | T-11（环境变量） | 5 min | 5 min |
 | T-12（验证） | 20 min | 10 min |
-| **总计** | ~110 min | ~85 min |
+| T-13（SSR 修复） | 30 min | 25 min |
+| **总计** | ~140 min | ~110 min |
 
 ---
 
@@ -167,3 +189,4 @@
 | T-10 | 2026-04-01 14:32 | header.tsx 已更新 |
 | T-11 | 2026-04-01 14:35 | env vars 已更新 |
 | T-12 | 2026-04-01 14:45 | 构建成功，需手动验收 |
+| T-13 | 2026-04-01 15:10 | SSR 修复完成（b610c57）|

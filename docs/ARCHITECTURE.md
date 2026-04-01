@@ -54,13 +54,15 @@ packages/
 
 | 文件 | 职责 |
 |------|------|
-| `ethereum-provider.tsx` | wagmi v2 + RainbowKit v2 Provider，CSR only |
-| `solana-provider.tsx` | @solana/wallet-adapter-react Provider，CSR only |
+| `wallet-providers.tsx` | 统一：wagmi v2 + RainbowKit v2 + Solana adapter（ssr:false 内运行）|
 | `wallet-button.tsx` | RainbowKit ConnectButton，EVM 连接入口 |
-| `index.ts` | 统一导出 Ethereum/Solana Provider |
+| `providers-dynamic.tsx` | 动态入口（`ssr:false`），防止 WalletConnect indexedDB SSR 错误 |
+| `providers.tsx` | Base providers（Theme + trpc QueryClient + Toaster，**无钱包导入**）|
 
 **Provider 嵌套顺序**（由外到内）:
-`ThemeProvider` → `QueryClientProvider(trpc)` → `EthereumProvider(wagmi)` → `SolanaProvider` → `RainbowKitProvider` → `children`
+`layout.tsx` → `WalletDynamicProviders(ssr:false)` → `Providers` → `WagmiProvider` → `QueryClientProvider(wagmi)` → `RainbowKitProvider` → `SolanaProvider` → `WalletModalProvider` → `children`
+
+**SSR 安全机制**: 整个钱包模块通过 `next/dynamic({ ssr: false })` 加载，确保 WalletConnect SignClient（使用 indexedDB）永不服务端执行。`ReactQueryDevtools` 也位于 `ssr:false` 树内以访问 `QueryClientProvider`。
 
 ## 数据流
 <!-- 描述数据如何在系统中流转 -->
