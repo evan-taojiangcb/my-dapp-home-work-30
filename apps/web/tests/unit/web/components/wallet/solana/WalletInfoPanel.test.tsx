@@ -62,7 +62,7 @@ describe("WalletInfoPanel", () => {
     vi.clearAllMocks();
   });
 
-  it("should return null (not render) when wallet is not connected", () => {
+  it("should render network and balance placeholder when wallet is not connected", () => {
     (useWallet as Mock).mockReturnValue({
       publicKey: null,
       connected: false,
@@ -70,11 +70,16 @@ describe("WalletInfoPanel", () => {
     });
     (useSolanaBalance as Mock).mockReturnValue({ data: undefined, isLoading: false, isError: false });
 
-    const { container } = render(<WalletInfoPanel />);
-    expect(container).toBeEmptyDOMElement();
+    render(<WalletInfoPanel />);
+    // Network label always visible
+    expect(screen.getByText("Solana Devnet")).toBeInTheDocument();
+    // Balance shows placeholder when disconnected
+    expect(screen.getByText("— SOL")).toBeInTheDocument();
+    // Address shows dash placeholder
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
-  it("should return null when publicKey is null even if connected=true", () => {
+  it("should render network and balance placeholder when publicKey is null even if connected=true", () => {
     (useWallet as Mock).mockReturnValue({
       publicKey: null,
       connected: true,
@@ -82,8 +87,9 @@ describe("WalletInfoPanel", () => {
     });
     (useSolanaBalance as Mock).mockReturnValue({ data: undefined, isLoading: false, isError: false });
 
-    const { container } = render(<WalletInfoPanel />);
-    expect(container).toBeEmptyDOMElement();
+    render(<WalletInfoPanel />);
+    expect(screen.getByText("Solana Devnet")).toBeInTheDocument();
+    expect(screen.getByText("— SOL")).toBeInTheDocument();
   });
 
   it("should render address, network, and balance when connected", () => {
@@ -108,7 +114,7 @@ describe("WalletInfoPanel", () => {
     // Balance shown as 1.5000 SOL
     expect(screen.getByText("1.5000 SOL")).toBeInTheDocument();
     // Section heading
-    expect(screen.getByText("Solana Wallet")).toBeInTheDocument();
+    expect(screen.getByText("Wallet")).toBeInTheDocument();
   });
 
   it("should show 'Loading...' when balance is loading", () => {

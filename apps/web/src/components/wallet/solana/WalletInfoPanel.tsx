@@ -30,24 +30,27 @@ export default function WalletInfoPanel() {
   const { data: balance, isLoading, isError } = useSolanaBalance(publicKey ?? null);
   const { network, isSepolia } = useNetworkContext();
 
-  if (!connected || !publicKey) return null;
-
-  const address = publicKey.toBase58();
+  const address = publicKey?.toBase58();
+  const isConnected = connected && !!publicKey;
 
   return (
     <div className="rounded-xl border bg-card p-4 space-y-3">
-      <h3 className="font-semibold text-sm">Solana Wallet</h3>
+      <h3 className="font-semibold text-sm">Wallet</h3>
 
       {/* Address (click to copy) */}
       <div className="space-y-1">
         <p className="text-xs text-muted-foreground">Address</p>
-        <button
-          onClick={() => void copyAddress(address)}
-          className="font-mono text-sm hover:text-primary transition-colors"
-          title="Click to copy full address"
-        >
-          {formatAddress(address)}
-        </button>
+        {isConnected ? (
+          <button
+            onClick={() => void copyAddress(address!)}
+            className="font-mono text-sm hover:text-primary transition-colors"
+            title="Click to copy full address"
+          >
+            {formatAddress(address!)}
+          </button>
+        ) : (
+          <p className="text-sm text-muted-foreground">—</p>
+        )}
       </div>
 
       {/* Network */}
@@ -75,12 +78,14 @@ export default function WalletInfoPanel() {
       </div>
 
       {/* Disconnect */}
-      <button
-        onClick={() => void disconnect().catch(() => {})}
-        className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-      >
-        Disconnect
-      </button>
+      {isConnected && (
+        <button
+          onClick={() => void disconnect().catch(() => {})}
+          className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+        >
+          Disconnect
+        </button>
+      )}
     </div>
   );
 }
