@@ -12,7 +12,6 @@
     "@my-dapp-home-work-30/env": "workspace:*",
     "@my-dapp-home-work-30/ui": "workspace:*",
     "@opennextjs/cloudflare": "^1.17.3",
-    "@rainbow-me/rainbowkit": "^2.0.0",
     "@solana/wallet-adapter-phantom": "^0.9.28",
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
@@ -30,8 +29,6 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "sonner": "catalog:",
-    "viem": "^2.9.0",
-    "wagmi": "^2.19.5",
     "zod": "catalog:"
   },
   "devDependencies": {
