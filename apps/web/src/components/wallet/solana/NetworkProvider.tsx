@@ -20,7 +20,7 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   "ethereum-sepolia": {
     label: "Ethereum Sepolia",
     symbol: "ETH",
-    endpoint: "", // No actual connection — placeholder
+    endpoint: "", // No actual Solana connection — placeholder shows "— ETH"
     description: "Ethereum testnet — requires Ethereum wallet",
   },
 };

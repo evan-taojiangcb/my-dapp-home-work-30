@@ -9,8 +9,6 @@ export default function NetworkSelector() {
     const next = e.target.value as NetworkId;
     if (next === "ethereum-sepolia") {
       toast("请安装 Ethereum 钱包以连接 Sepolia 网络");
-      // Reset to current network so selector shows the real selection
-      return;
     }
     setNetworkId(next);
   }
