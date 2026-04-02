@@ -1,6 +1,10 @@
 export { default as SolanaConnectButton } from "./SolanaConnectButton";
 export { default as WalletInfoPanel } from "./WalletInfoPanel";
+export { default as TransferPanel } from "./TransferPanel";
 export { default as SolanaProvider } from "./SolanaProvider";
 export { default as NetworkSelector } from "./NetworkSelector";
 export { NetworkProvider, useNetworkContext, NETWORKS } from "./NetworkProvider";
 export { useSolanaBalance } from "./useSolanaBalance";
+export { useSolanaTransfer } from "./useSolanaTransfer";
+export { useEthTransfer } from "./useEthTransfer";
+export { useWalletAccountSync } from "./useWalletAccountSync";

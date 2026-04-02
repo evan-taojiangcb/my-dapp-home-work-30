@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { trpc } from "@/utils/trpc";
 import WalletInfoPanel from "@/components/wallet/solana/WalletInfoPanel";
+import TransferPanel from "@/components/wallet/solana/TransferPanel";
 
 const TITLE_TEXT = `
  ██████╗ ███████╗████████╗████████╗███████╗██████╗
@@ -29,6 +30,10 @@ export default function Home() {
       <div className="grid gap-6">
         <section className="rounded-xl border bg-card p-4 space-y-3">
           <WalletInfoPanel />
+        </section>
+
+        <section className="rounded-xl border bg-card p-4 space-y-3">
+          <TransferPanel />
         </section>
 
         <section className="rounded-lg border p-4">

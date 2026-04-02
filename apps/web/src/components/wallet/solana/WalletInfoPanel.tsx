@@ -1,7 +1,9 @@
 "use client";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useSolanaBalance } from "./useSolanaBalance";
+import { useEthBalance } from "./useEthBalance";
 import { useNetworkContext } from "./NetworkProvider";
+import { useWalletAccountSync } from "./useWalletAccountSync";
 
 function formatAddress(pk: string) {
   return `${pk.slice(0, 4)}...${pk.slice(-4)}`;
@@ -29,6 +31,10 @@ export default function WalletInfoPanel() {
   const { publicKey, connected, disconnect } = useWallet();
   const { data: balance, isLoading, isError } = useSolanaBalance(publicKey ?? null);
   const { network, isSepolia } = useNetworkContext();
+  const { data: ethData, isLoading: ethLoading } = useEthBalance(isSepolia);
+
+  // Sync balance when user switches accounts in Phantom (both Solana & Ethereum)
+  useWalletAccountSync();
 
   const address = publicKey?.toBase58();
   const isConnected = connected && !!publicKey;
@@ -64,7 +70,13 @@ export default function WalletInfoPanel() {
         <p className="text-xs text-muted-foreground">Balance</p>
         <p className="text-sm">
           {isSepolia ? (
-            "— ETH"
+            ethLoading ? (
+              <span className="animate-pulse">Loading...</span>
+            ) : ethData?.balance != null ? (
+              `${ethData.balance.toFixed(4)} ETH`
+            ) : (
+              "— ETH"
+            )
           ) : isLoading ? (
             <span className="animate-pulse">Loading...</span>
           ) : isError ? (
