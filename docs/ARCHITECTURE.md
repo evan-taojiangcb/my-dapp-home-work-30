@@ -22,8 +22,15 @@ apps/
 │       ├── app/               # Next.js App Router 页面
 │       ├── components/        # React 组件
 │       │   ├── wallet/        # 钱包集成组件
-│       │   │   ├── solana/    # Solana 钱包 (SolanaProvider, SolanaConnectButton, WalletInfoPanel, useSolanaBalance)
-│       │   │   └── providers-dynamic.tsx  # 动态加载 Provider (ssr: false)
+│       │   │   ├── solana/    # Solana 钱包
+│       │   │   │   ├── SolanaProvider.tsx      # ConnectionProvider + WalletProvider + WalletModalProvider
+│       │   │   │   ├── SolanaConnectButton.tsx  # BaseWalletMultiButton 连接按钮
+│       │   │   │   ├── WalletInfoPanel.tsx     # 地址/网络/余额显示
+│       │   │   │   ├── NetworkSelector.tsx      # 网络下拉选择器
+│       │   │   │   ├── NetworkProvider.tsx      # 网络 Context (networkId, endpoint, isSepolia)
+│       │   │   │   ├── useSolanaBalance.ts      # SOL 余额查询 hook
+│       │   │   │   └── index.ts
+│       │   │   └── providers-dynamic.tsx  # 动态加载 Provider (ssr: false) + NetworkProvider
 │       │   └── ...
 │       └── utils/trpc.ts      # tRPC 客户端单例
 │   └── tests/                 # Vitest 单元测试 (apps/web 内)
@@ -42,12 +49,15 @@ packages/
 ### apps/web
 
 - 负责所有前端 UI 渲染和用户交互
-- **wallet/solana/** 模块：Solana Devnet 钱包连接 UI
-  - `SolanaProvider`: Provider 链 (`ConnectionProvider` → `WalletProvider` → `WalletModalProvider`)
-  - `SolanaConnectButton`: 触发钱包连接 (`BaseWalletMultiButton` + 自定义 labels)
-  - `WalletInfoPanel`: 连接后显示地址/网络/余额
-  - `useSolanaBalance`: SOL 余额查询 hook (React Query + `connection.getBalance`)
-  - `providers-dynamic`: 动态加载上述 Provider (SSR 兼容，`ssr: false`)
+- **wallet/solana/** 模块：Solana 钱包连接 UI（支持 Devnet + Sepolia 网络选择）
+  - `SolanaProvider`: Provider 链，读 `NetworkContext` 的 `endpoint`（`ConnectionProvider` → `WalletProvider` → `WalletModalProvider`）
+  - `SolanaConnectButton`: 触发钱包连接（`BaseWalletMultiButton` + 自定义 labels，头部横向排列）
+  - `WalletInfoPanel`: 连接后显示地址/当前网络/余额；Sepolia 模式显示 "— ETH" 占位符
+  - `NetworkProvider`: 网络 Context（`networkId`、`endpoint`、`isSepolia`）
+  - `NetworkSelector`: 下拉选择器，支持 Solana Devnet / Ethereum Sepolia
+  - `useSolanaBalance`: SOL 余额查询 hook（React Query，`queryKey` 包含 `networkId`）
+  - `providers-dynamic`: 动态加载 Provider（`ssr: false`）并包裹 `NetworkProvider`
+- `Header`: 顶部导航栏，水平横向排列 `SolanaConnectButton` + `NetworkSelector`
 - tRPC `QueryClient` 使用 `apps/web/src/utils/trpc.ts` 中的单例，不自行创建
 
 ### apps/server
@@ -66,19 +76,33 @@ packages/
 用户点击 "Connect to Phantom"
   → BaseWalletMultiButton (no-wallet state) → 打开 WalletModal
     → 用户选择 Phantom → PhantomWalletAdapter.connect()
-      → 钱包公钥写入 React Context
-        → useSolanaBalance(publicKey) 启用 React Query
+      → 钱包公钥写入 React Context（useWallet）
+        → useSolanaBalance(publicKey, networkId) 启用 React Query
           → connection.getBalance(publicKey) via Solana Devnet RPC
             → 余额显示在 WalletInfoPanel
+
+用户切换网络（NetworkSelector）
+  → setNetworkId(newNetworkId)
+    → NetworkContext 更新 → SolanaProvider 内部重新渲染
+      → ConnectionProvider 使用新 endpoint 重新创建连接
+        → useSolanaBalance 触发 re-fetch（新 queryKey 包含 networkId）
+          → 余额/网络/币种显示同步更新
+
+Phantom 切换账号（Phantom 弹窗内操作）
+  → useWallet().publicKey 变更
+    → 组件树自动 re-render
+      → useSolanaBalance 触发 re-fetch（新 queryKey 包含新 publicKey）
+        → WalletInfoPanel 地址/余额自动更新
 ```
 
 ## 外部依赖
 
 | 依赖 | 用途 | 约束 |
 |------|------|------|
-| `api.devnet.solana.com` | Solana Devnet RPC | 固定 Devnet，不支持 Mainnet |
+| `api.devnet.solana.com` | Solana Devnet RPC | 支持 Devnet，Sepolia 为占位符 |
 | `@solana/wallet-adapter-react-ui` | 钱包连接 UI | 需 `ssr: false` 动态加载 |
 | `@tanstack/react-query` | React Query v5 | 使用 `apps/web/src/utils/trpc.ts` 中的 `queryClient` 单例 |
+| `sonner` | Toast 通知 | NetworkSelector 切换提示 |
 
 ## 钱包集成设计
 
@@ -95,15 +119,17 @@ const SolanaProvider = dynamic(() => import("./solana/SolanaProvider"), { ssr: f
 
 ```
 <QueryClientProvider client={queryClient}>   // 使用 trpc.ts 中的单例
-  <ConnectionProvider endpoint={DEVNET}>     // 固定 Solana Devnet
-    <WalletProvider wallets={[phantom]} autoConnect>
-      <WalletModalProvider>
-        {children}
-      </WalletModalProvider>
-    </WalletProvider>
-  </ConnectionProvider>
+  <NetworkProvider>                          // 网络 Context（networkId, endpoint, isSepolia）
+    <SolanaProvider>                          // 动态加载（ssr: false），内部读取 network.endpoint
+      {children}
+    </SolanaProvider>
+  </NetworkProvider>
 </QueryClientProvider>
 ```
+
+**SolanaProvider 内部逻辑**：根据 `network.endpoint` 决定渲染内容：
+- 有 endpoint（Solana Devnet）→ 正常渲染 `ConnectionProvider` → `WalletProvider` → `WalletModalProvider`
+- 空 endpoint（Sepolia）→ 直接渲染 children（占位符，不建立实际连接）
 
 ### 钱包按钮标签 (AC-001 / AC-007)
 

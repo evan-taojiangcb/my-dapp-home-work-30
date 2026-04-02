@@ -4,7 +4,7 @@
  * Covers:
  * - Query is disabled when publicKey is null
  * - Query uses correct staleTime
- * - Query key includes publicKey
+ * - Query key includes networkId and publicKey
  * - Returns balance in SOL units (LAMPORTS_PER_SOL conversion)
  */
 import { describe, expect, it, vi } from "vitest";
@@ -25,6 +25,14 @@ vi.mock("@solana/wallet-adapter-react", () => ({
 vi.mock("@solana/web3.js", () => ({
   LAMPORTS_PER_SOL: 1_000_000_000,
 }));
+
+// Mock NetworkProvider context
+vi.mock(
+  "../../../../../../src/components/wallet/solana/NetworkProvider",
+  () => ({
+    useNetworkContext: vi.fn(() => ({ networkId: "solana-devnet" })),
+  })
+);
 
 import { useQuery } from "@tanstack/react-query";
 import { useConnection } from "@solana/wallet-adapter-react";
@@ -48,17 +56,17 @@ describe("useSolanaBalance", () => {
   it("should disabled query when publicKey is null", () => {
     (useQuery as Mock).mockReturnValue({ data: undefined, isLoading: false, isError: false });
 
-    const { result } = renderHook(() => useSolanaBalance(null));
+    renderHook(() => useSolanaBalance(null));
 
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: false,
-        queryKey: ["solana-balance", undefined],
+        queryKey: ["solana-balance", "solana-devnet", undefined],
       })
     );
   });
 
-  it("should enabled query when publicKey is provided", () => {
+  it("should enabled query when publicKey is provided with networkId in key", () => {
     (useQuery as Mock).mockReturnValue({ data: 1.5, isLoading: false, isError: false });
 
     renderHook(() => useSolanaBalance(mockPublicKeyObj));
@@ -66,12 +74,12 @@ describe("useSolanaBalance", () => {
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: true,
-        queryKey: ["solana-balance", "AbCdEfGhIjKlMnOpQrStUvWxYz123456789"],
+        queryKey: ["solana-balance", "solana-devnet", "AbCdEfGhIjKlMnOpQrStUvWxYz123456789"],
       })
     );
   });
 
-  it("should pass correct query key with publicKey base58", () => {
+  it("should pass correct query key with networkId and publicKey base58", () => {
     (useQuery as Mock).mockReturnValue({ data: 0.5, isLoading: false, isError: false });
 
     const anotherKey = mockPublicKey("UniqueKey99999999999999999999999999");
@@ -79,7 +87,7 @@ describe("useSolanaBalance", () => {
 
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["solana-balance", "UniqueKey99999999999999999999999999"],
+        queryKey: ["solana-balance", "solana-devnet", "UniqueKey99999999999999999999999999"],
       })
     );
   });

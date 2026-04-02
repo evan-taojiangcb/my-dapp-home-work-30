@@ -6,6 +6,7 @@
  * - Renders address, network, balance when connected
  * - Shows "Loading..." when isLoading
  * - Shows "— SOL" when isError
+ * - Shows "— ETH" when on Sepolia network
  * - Disconnect button calls disconnect()
  * - Click-to-copy address functionality
  */
@@ -26,12 +27,31 @@ vi.mock("@solana/wallet-adapter-react", () => ({
   useWallet: vi.fn(),
 }));
 
+// Mock NetworkProvider context
+vi.mock(
+  "../../../../../../src/components/wallet/solana/NetworkProvider",
+  () => ({
+    useNetworkContext: vi.fn(() => ({
+      networkId: "solana-devnet",
+      network: {
+        label: "Solana Devnet",
+        symbol: "SOL",
+        endpoint: "https://api.devnet.solana.com",
+        description: "Solana development network",
+      },
+      isSepolia: false,
+      setNetworkId: vi.fn(),
+    })),
+  })
+);
+
 // Mock @testing-library/jest-dom for toBeInTheDocument matcher
 import "@testing-library/jest-dom";
 
 import WalletInfoPanel from "../../../../../../src/components/wallet/solana/WalletInfoPanel";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useSolanaBalance } from "../../../../../../src/components/wallet/solana/useSolanaBalance";
+import { useNetworkContext } from "../../../../../../src/components/wallet/solana/NetworkProvider";
 
 function mockPublicKey(base58: string) {
   return { toBase58: () => base58 };
@@ -130,6 +150,38 @@ describe("WalletInfoPanel", () => {
     expect(screen.getByText("— SOL")).toBeInTheDocument();
   });
 
+  it("should show '— ETH' when on Sepolia network", () => {
+    (useNetworkContext as Mock).mockReturnValue({
+      networkId: "ethereum-sepolia",
+      network: {
+        label: "Ethereum Sepolia",
+        symbol: "ETH",
+        endpoint: "",
+        description: "Ethereum testnet",
+      },
+      isSepolia: true,
+      setNetworkId: vi.fn(),
+    });
+    const mockPK = mockPublicKey("AbCdEfGhIjKlMnOpQrStUvWxYz123456789");
+    (useWallet as Mock).mockReturnValue({
+      publicKey: mockPK,
+      connected: true,
+      disconnect: vi.fn(),
+    });
+    (useSolanaBalance as Mock).mockReturnValue({
+      data: 2.0,
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<WalletInfoPanel />);
+
+    // Sepolia shows "— ETH" regardless of actual SOL balance
+    expect(screen.getByText("— ETH")).toBeInTheDocument();
+    // Network label updates
+    expect(screen.getByText("Ethereum Sepolia")).toBeInTheDocument();
+  });
+
   it("should call disconnect() when disconnect button is clicked", () => {
     const mockPK = mockPublicKey("AbCdEfGhIjKlMnOpQrStUvWxYz123456789");
     const mockDisconnect = vi.fn().mockResolvedValue(undefined);
@@ -146,7 +198,7 @@ describe("WalletInfoPanel", () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it("should call copy function when address button is clicked", async () => {
+  it("should render address button", () => {
     const fullAddress = "AbCdEfGhIjKlMnOpQrStUvWxYz123456789";
     const mockPK = mockPublicKey(fullAddress);
     (useWallet as Mock).mockReturnValue({
@@ -158,7 +210,6 @@ describe("WalletInfoPanel", () => {
 
     render(<WalletInfoPanel />);
 
-    // Verify the address button renders correctly and is clickable
     const addressButton = screen.getByTitle("Click to copy full address");
     expect(addressButton).toBeInTheDocument();
   });
