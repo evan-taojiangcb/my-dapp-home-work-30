@@ -1,0 +1,45 @@
+# SDLC Workflow Rules
+
+- 文件操作限项目根目录内
+- 日期格式: YYYY-MM-DD
+- 迭代目录格式: docs/iterations/YYYY-MM-DD/<seq>-<slug>-<type>/
+  - <seq>: 当天内递增的 3 位序号，例 `001`
+  - <slug>: 需求名 kebab-case (≤30 字符)
+  - <type>: feature | fix | refactor | docs | test | chore
+- Commit: Conventional Commits (feat/fix/docs/refactor/test/chore)
+- 通知统一走 OpenClaw CLI
+- Review/Test 循环上限由 REVIEW_MAX_ROUNDS 控制（默认 1 轮）
+- 超限通知人工 + 中止 Pipeline
+- 禁止直推 main/master 分支
+- 禁止通知/日志泄露敏感信息（密钥/Token/密码）
+- Codex Gate 默认使用 `codex exec --full-auto`
+- Codex CLI 不可用时必须中止，不能自动跳过 Gate
+- 测试文件统一存放 tests/ 目录（unit/ + e2e/ + reports/）
+- 新需求处理前必须参考 docs/iterations/ 历史上下文
+- 若项目已存在业务代码或工程结构，则进入 existing project mode，必须先生成：
+  - `docs/PROJECT_BASELINE.md`
+  - `docs/EXISTING_STRUCTURE.md`
+  - `docs/TEST_BASELINE.md`
+- existing project mode 下，未经 `design.md` 明确批准，不得调整既有技术架构或重排 workspace
+- 全栈项目默认遵循 Better-T-Stack 风格 monorepo：
+  - `apps/web`：Web 前端应用
+  - `apps/server`：后端 API / BFF / Worker 入口
+  - `apps/native`：移动端应用（如存在）
+  - `apps/docs`：文档站点（如存在）
+  - `packages/*`：共享代码、类型、配置、SDK、业务模块
+- 业务代码禁止随意落在新的顶层目录中；默认不允许新增根目录级 `web/`、`server/`、`api/`、`frontend/`、`backend/`
+- Web 前端实现默认落在 `apps/web/src/`
+- 后端实现默认落在 `apps/server/src/`
+- 共享包默认按 Better-T-Stack 条件创建：`packages/config` 总是存在；`packages/env`、`packages/api`、`packages/auth`、`packages/db`、`packages/infra`、`packages/ui` 按所选能力启用
+- 跨端共享逻辑默认进入 `packages/*`，不要在 `apps/web` 和 `apps/server` 间复制
+- 设计文档必须声明目录影响：新增目录、修改目录、为什么不能复用现有目录
+- existing project 的设计文档必须引用 baseline，说明本次需求是沿用既有结构还是批准的结构调整
+- 若必须偏离 Better-T-Stack 结构，需在 `design.md` 中给出明确理由，并经过 Gate 1 审查通过
+- 单元测试必须写入 `tests/unit/`，并按 workspace 镜像落位，如 `tests/unit/web/...`、`tests/unit/server/...`、`tests/unit/packages/...`
+- E2E 测试必须写入 `tests/e2e/`，并维护“需求 ID / 场景 ID / 文件路径”的唯一映射，不得重复覆盖同一需求路径
+- `tasks.md` 是执行状态单据：任务实现完成后，必须将任务标题从 `[ ]` 回写为 `[x]`，并同步勾选真实完成的验收标准
+- 进入 `/sdlc-doit` 或 `/sdlc-doit-mini` 的测试阶段前，必须先检测项目当前具备的验证能力，不能静默跳过测试决策
+- `TEST_BOOTSTRAP_POLICY` 决定缺少测试基础设施时的行为；existing project 默认推荐 `report`
+- OpenClaw / 远程场景默认不依赖交互式 ask，优先通过报告和 TG 通知输出缺口与后续动作
+- 测试链路为 `Playwright 预检 + Chrome DevTools MCP + WebMCP 最终交互验收`
+- 最终交互测试与最终测试报告以 Chrome DevTools MCP 和 WebMCP 产物为准

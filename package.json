@@ -27,9 +27,15 @@
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
     "@my-dapp-home-work-30/config": "workspace:*",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^22.13.14",
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^29.0.1",
     "turbo": "^2.8.12",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.2"
   },
   "packageManager": "pnpm@10.30.3"
 }

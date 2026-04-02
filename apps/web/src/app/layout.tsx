@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
-import WalletDynamicProviders from "@/components/providers-dynamic";
+import ProvidersDynamic from "@/components/wallet/providers-dynamic";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <WalletDynamicProviders>
+        <ProvidersDynamic>
           <div className="grid grid-rows-[auto_1fr] h-svh">
             <Header />
             {children}
           </div>
-        </WalletDynamicProviders>
+        </ProvidersDynamic>
       </body>
     </html>
   );

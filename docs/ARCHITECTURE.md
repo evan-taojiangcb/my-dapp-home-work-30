@@ -1,86 +1,129 @@
 # Architecture
 
 ## 系统概要
-<!-- 请描述系统整体架构 -->
+
+Web3 DApp，支持 Ethereum 和 Solana 双链钱包连接。前端使用 Next.js App Router，后端使用 tRPC + Cloudflare Workers。
 
 ## 技术栈
-<!-- 列出核心技术选型及版本 -->
 
-**钱包 & Web3**:
-- `wagmi` v2 + `viem` v2 — Ethereum 交互
-- `@rainbow-me/rainbowkit` v2 — EVM 钱包连接 UI
-- `@solana/wallet-adapter-react` + `@solana/wallet-adapter-phantom` — Solana 钱包
+- **前端**: Next.js 16 (App Router), React 19, TailwindCSS 4, shadcn/ui
+- **状态/数据**: TanStack Query (React Query) v5, tRPC v11
+- **钱包集成**: @solana/wallet-adapter (React UI + Phantom adapter)
+- **区块链**: @solana/web3.js v1, Ethereum via WalletConnect-style (待接入)
+- **部署**: Cloudflare Pages + Workers (OpenNext.js adapter)
+- **Monorepo**: pnpm workspaces, Turbo v2
 
 ## 目录约定
 
-默认采用 Better-T-Stack 风格 monorepo：
-
-```text
+```
 apps/
-├── web/          # Web 前端
-├── server/       # 后端 API / BFF / Worker
-├── native/       # 移动端（可选）
-└── docs/         # 文档站点（可选）
-
+├── web/          # Web 前端 (Next.js)
+│   └── src/
+│       ├── app/               # Next.js App Router 页面
+│       ├── components/        # React 组件
+│       │   ├── wallet/        # 钱包集成组件
+│       │   │   ├── solana/    # Solana 钱包 (SolanaProvider, SolanaConnectButton, WalletInfoPanel, useSolanaBalance)
+│       │   │   └── providers-dynamic.tsx  # 动态加载 Provider (ssr: false)
+│       │   └── ...
+│       └── utils/trpc.ts      # tRPC 客户端单例
+│   └── tests/                 # Vitest 单元测试 (apps/web 内)
+├── server/       # Cloudflare Workers (tRPC 路由)
 packages/
-├── config/       # 始终存在
-├── env/          # 存在前端或后端时
-├── api/          # 启用 API 层时
-├── auth/         # 启用认证时
-├── db/           # 启用数据库 + ORM 时
-├── infra/        # 启用 Cloudflare / infra 时
-└── ui/           # React Web 共享 UI 时
+├── config/       # ESLint / TypeScript 共享配置
+├── env/          # 环境变量 schema 验证
+├── api/          # tRPC 路由定义
+├── auth/         # 认证逻辑
+├── db/           # Drizzle ORM schema + 客户端
+└── ui/           # 共享 UI 组件库
 ```
 
-约束：
-
-- Web UI 和页面逻辑默认放在 `apps/web/src/`
-- 后端入口、路由、服务默认放在 `apps/server/src/`
-- 共享逻辑优先进入 `packages/*`，并根据所选能力启用对应包
-- 默认不新增根目录级 `web/`、`server/`、`api/`、`frontend/`、`backend/`
-- 若偏离该结构，必须记录原因和影响范围
-
 ## 模块结构
-<!-- 描述主要模块及其职责 -->
 
-建议至少说明：
+### apps/web
 
-- `apps/web` 负责什么
-- `apps/server` 负责什么
-- `packages/*` 中有哪些共享模块
-- 哪些模块禁止跨层直接依赖
+- 负责所有前端 UI 渲染和用户交互
+- **wallet/solana/** 模块：Solana Devnet 钱包连接 UI
+  - `SolanaProvider`: Provider 链 (`ConnectionProvider` → `WalletProvider` → `WalletModalProvider`)
+  - `SolanaConnectButton`: 触发钱包连接 (`BaseWalletMultiButton` + 自定义 labels)
+  - `WalletInfoPanel`: 连接后显示地址/网络/余额
+  - `useSolanaBalance`: SOL 余额查询 hook (React Query + `connection.getBalance`)
+  - `providers-dynamic`: 动态加载上述 Provider (SSR 兼容，`ssr: false`)
+- tRPC `QueryClient` 使用 `apps/web/src/utils/trpc.ts` 中的单例，不自行创建
 
-### 钱包模块 (`apps/web/src/components/wallet/`)
+### apps/server
 
-| 文件 | 职责 |
-|------|------|
-| `wallet-providers.tsx` | 统一：wagmi v2 + RainbowKit v2 + Solana adapter（ssr:false 内运行）|
-| `wallet-button.tsx` | RainbowKit ConnectButton，EVM 连接入口 |
-| `providers-dynamic.tsx` | 动态入口（`ssr:false`），防止 WalletConnect indexedDB SSR 错误 |
-| `providers.tsx` | Base providers（Theme + trpc QueryClient + Toaster，**无钱包导入**）|
+- tRPC 路由暴露 REST API
+- 提供 `healthCheck` 等端点
 
-**Provider 嵌套顺序**（由外到内）:
-`layout.tsx` → `WalletDynamicProviders(ssr:false)` → `Providers` → `WagmiProvider` → `QueryClientProvider(wagmi)` → `RainbowKitProvider` → `SolanaProvider` → `WalletModalProvider` → `children`
+### packages/api
 
-**SSR 安全机制**: 整个钱包模块通过 `next/dynamic({ ssr: false })` 加载，确保 WalletConnect SignClient（使用 indexedDB）永不服务端执行。`ReactQueryDevtools` 也位于 `ssr:false` 树内以访问 `QueryClientProvider`。
+- tRPC router 定义
+- context 构建
 
 ## 数据流
-<!-- 描述数据如何在系统中流转 -->
+
+```
+用户点击 "Connect to Phantom"
+  → BaseWalletMultiButton (no-wallet state) → 打开 WalletModal
+    → 用户选择 Phantom → PhantomWalletAdapter.connect()
+      → 钱包公钥写入 React Context
+        → useSolanaBalance(publicKey) 启用 React Query
+          → connection.getBalance(publicKey) via Solana Devnet RPC
+            → 余额显示在 WalletInfoPanel
+```
 
 ## 外部依赖
-<!-- 列出外部服务、API、数据库等 -->
 
-### 钱包服务
+| 依赖 | 用途 | 约束 |
+|------|------|------|
+| `api.devnet.solana.com` | Solana Devnet RPC | 固定 Devnet，不支持 Mainnet |
+| `@solana/wallet-adapter-react-ui` | 钱包连接 UI | 需 `ssr: false` 动态加载 |
+| `@tanstack/react-query` | React Query v5 | 使用 `apps/web/src/utils/trpc.ts` 中的 `queryClient` 单例 |
 
-| 服务 | 用途 | 配置变量 |
-|------|------|----------|
-| WalletConnect | EVM 钱包连接 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` |
-| Alchemy | Ethereum RPC 节点 | `NEXT_PUBLIC_ALCHEMY_API_KEY` |
-| Phantom | Solana 钱包连接 | 无需 API Key |
-| Solana RPC | Solana 集群通信 | `NEXT_PUBLIC_SOLANA_RPC_URL`, `NEXT_PUBLIC_SOLANA_CLUSTER` |
+## 钱包集成设计
+
+### SSR 兼容性
+
+`PhantomWalletAdapter` 在模块初始化时访问 `window`。Next.js SSR 阶段无 `window`，会导致错误。解决方案：
+
+```tsx
+// providers-dynamic.tsx
+const SolanaProvider = dynamic(() => import("./solana/SolanaProvider"), { ssr: false });
+```
+
+### Provider 链
+
+```
+<QueryClientProvider client={queryClient}>   // 使用 trpc.ts 中的单例
+  <ConnectionProvider endpoint={DEVNET}>     // 固定 Solana Devnet
+    <WalletProvider wallets={[phantom]} autoConnect>
+      <WalletModalProvider>
+        {children}
+      </WalletModalProvider>
+    </WalletProvider>
+  </ConnectionProvider>
+</QueryClientProvider>
+```
+
+### 钱包按钮标签 (AC-001 / AC-007)
+
+- `no-wallet` → "Connect to Phantom"（无钱包扩展时显示）
+- `has-wallet` → "Connect"（保持默认，不覆盖）
+- "Install Phantom" 提示由 WalletModal 触发，不在按钮标签层
+
+### 余额查询
+
+- `useSolanaBalance(publicKey)` 使用 `enabled: !!publicKey` 控制查询启用
+- React Query 默认重试 3 次，失败后 `isError: true` → UI 显示 "— SOL"
+- 异常不吞掉，由 React Query 处理
+- `staleTime: 30_000`（30 秒）
 
 ## 部署架构
-<!-- 描述部署环境和方式 -->
+
+- Cloudflare Pages (Next.js) + Cloudflare Workers (tRPC API)
+- `open-next.config.ts` 配置 Cloudflare Workers 适配器
+- 环境变量通过 `packages/env` 的 Zod schema 验证
 
 ## 目录偏离记录
-<!-- 若未采用上述 monorepo 结构，在这里记录原因、风险和后续迁移计划 -->
+
+- `apps/web/tests/unit/` 位于 `apps/web/` 内而非 monorepo 根 `tests/unit/web/`：原因：pnpm monorepo 默认 `shamefully-hoist=false`，workspace packages 无法从根目录 node_modules 解析。将测试放在 apps/web 内确保 vitest 能正确解析 `@solana/wallet-adapter-*` 和 `@tanstack/react-query`。

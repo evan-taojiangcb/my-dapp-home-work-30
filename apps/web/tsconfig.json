@@ -24,7 +24,7 @@
       "@/*": ["./src/*"],
       "@my-dapp-home-work-30/ui/*": ["../../packages/ui/src/*"]
     },
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types", "vitest/globals"]
   },
   "include": [
     "next-env.d.ts",
