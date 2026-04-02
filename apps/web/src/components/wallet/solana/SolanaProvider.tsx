@@ -11,6 +11,10 @@ const wallets = [new PhantomWalletAdapter()];
 // ConnectionProvider must receive a non-empty string endpoint — guard for empty string (Sepolia placeholder).
 function SolanaConnectionProvider({ children }: { children: ReactNode }) {
   const { network } = useNetworkContext();
+  if (!network.endpoint) {
+    // Sepolia placeholder — no valid Solana endpoint, skip ConnectionProvider.
+    return <>{children}</>;
+  }
   return (
     <ConnectionProvider endpoint={network.endpoint}>
       {children}
