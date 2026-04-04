@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - banner [ref=e13]:
+      - heading "My Dapp" [level=1] [ref=e14]
+      - generic [ref=e15]:
+        - button "Phantom icon F6Yz..BsCt" [ref=e17] [cursor=pointer]:
+          - img "Phantom icon" [ref=e19]
+          - text: F6Yz..BsCt
+        - combobox [ref=e20] [cursor=pointer]:
+          - option "Solana Devnet (SOL)" [selected]
+          - option "Ethereum Sepolia (ETH)"
+    - generic [ref=e21]:
+      - generic [ref=e22]: ██████╗ ███████╗████████╗████████╗███████╗██████╗ ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗ ██████╔╝█████╗ ██║ ██║ █████╗ ██████╔╝ ██╔══██╗██╔══╝ ██║ ██║ ██╔══╝ ██╔══██╗ ██████╔╝███████╗ ██║ ██║ ███████╗██║ ██║ ╚═════╝ ╚══════╝ ╚═╝ ╚═╝ ╚══════╝╚═╝ ╚═╝ ████████╗ ███████╗████████╗ █████╗ ██████╗██╗ ██╗ ╚══██╔══╝ ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝ ██║ ███████╗ ██║ ███████║██║ █████╔╝ ██║ ╚════██║ ██║ ██╔══██║██║ ██╔═██╗ ██║ ███████║ ██║ ██║ ██║╚██████╗██║ ██╗ ╚═╝ ╚══════╝ ╚═╝ ╚═╝ ╚═╝ ╚═════╝╚═╝ ╚═╝
+      - generic [ref=e23]:
+        - generic [ref=e25]:
+          - heading "Wallet" [level=3] [ref=e26]
+          - generic [ref=e27]:
+            - paragraph [ref=e28]: Address
+            - button "F6Yz...BsCt" [ref=e29]
+          - generic [ref=e30]:
+            - paragraph [ref=e31]: Network
+            - paragraph [ref=e32]: Solana Devnet
+          - generic [ref=e33]:
+            - paragraph [ref=e34]: Balance
+            - paragraph [ref=e35]: Loading...
+          - button "Disconnect" [ref=e36]
+        - generic [ref=e37]:
+          - heading "API Status" [level=2] [ref=e38]
+          - generic [ref=e41]: Checking...

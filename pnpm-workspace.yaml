@@ -19,3 +19,4 @@ catalog:
   alchemy: ^0.90.0
   drizzle-orm: ^0.45.1
   "@types/pg": ^8.16.0
+  jotai: ^2.10.0

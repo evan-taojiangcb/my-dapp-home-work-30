@@ -20,7 +20,7 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   "ethereum-sepolia": {
     label: "Ethereum Sepolia",
     symbol: "ETH",
-    endpoint: "", // No actual Solana connection — placeholder shows "— ETH"
+    endpoint: "https://eth-sepolia.g.alchemy.com/v2/jYaQ0N_D69YM3lYProPxb0m0NEJX_HvX", // No actual Solana connection — placeholder shows "— ETH"
     description: "Ethereum testnet — requires Ethereum wallet",
   },
 };
@@ -44,7 +44,9 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
         networkId,
         network,
         isSepolia: networkId === "ethereum-sepolia",
-        setNetworkId,
+        setNetworkId: (id: NetworkId) => {
+          setNetworkId(id);
+        }
       }}
     >
       {children}

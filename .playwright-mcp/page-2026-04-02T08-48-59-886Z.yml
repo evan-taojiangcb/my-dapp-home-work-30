@@ -1,0 +1,19 @@
+- generic [active] [ref=e11]:
+  - generic [ref=e5] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e6]:
+      - img [ref=e7]
+    - generic [ref=e28]:
+      - button "Open issues overlay" [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: "0"
+          - generic [ref=e32]: "1"
+        - generic [ref=e33]: Issue
+      - button "Collapse issues badge" [ref=e34]:
+        - img [ref=e35]
+  - generic [ref=e38]:
+    - img [ref=e39]
+    - heading "This page couldn’t load" [level=1] [ref=e41]
+    - paragraph [ref=e42]: Reload to try again, or go back.
+    - generic [ref=e43]:
+      - button "Reload" [ref=e45] [cursor=pointer]
+      - button "Back" [ref=e46] [cursor=pointer]

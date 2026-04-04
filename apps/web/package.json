@@ -32,6 +32,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "sonner": "catalog:",
+    "jotai": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
