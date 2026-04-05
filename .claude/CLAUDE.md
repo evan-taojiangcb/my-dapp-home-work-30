@@ -1,13 +1,10 @@
 # <项目名称>
 
 ## 项目概述
-<!-- 请填写项目简介 -->
+Web3 DApp，支持 Ethereum（MetaMask + RainbowKit）和 Solana（Phantom）双链钱包连接。
 
 ## 技术栈
-<!-- 请填写项目使用的技术栈 -->
-
-## 目录结构
-<!-- 请描述项目目录结构 -->
+Next.js 16 (App Router), React 19, TailwindCSS 4, tRPC v11, TanStack Query v5, RainbowKit + Wagmi (Ethereum), @solana/wallet-adapter (Solana), Hono + Cloudflare Workers
 
 ## 开发约定
 - 参考 docs/ARCHITECTURE.md 了解架构设计

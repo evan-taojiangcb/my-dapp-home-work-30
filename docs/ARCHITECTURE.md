@@ -8,8 +8,8 @@ Web3 DApp，支持 Ethereum 和 Solana 双链钱包连接。前端使用 Next.js
 
 - **前端**: Next.js 16 (App Router), React 19, TailwindCSS 4, shadcn/ui
 - **状态/数据**: TanStack Query (React Query) v5, tRPC v11
-- **钱包集成**: @solana/wallet-adapter (React UI + Phantom adapter)
-- **区块链**: @solana/web3.js v1, Ethereum via WalletConnect-style (待接入)
+- **钱包集成**: @solana/wallet-adapter (React UI + Phantom adapter), RainbowKit + Wagmi (Ethereum)
+- **区块链**: @solana/web3.js v1, Ethereum via RainbowKit + WalletConnect (MetaMask supported)
 - **部署**: Cloudflare Pages + Workers (OpenNext.js adapter)
 - **Monorepo**: pnpm workspaces, Turbo v2
 
@@ -22,7 +22,10 @@ apps/
 │       ├── app/               # Next.js App Router 页面
 │       ├── components/        # React 组件
 │       │   ├── wallet/        # 钱包集成组件
-│       │   │   ├── solana/    # Solana 钱包
+│       │   │   ├── eth/       # Ethereum 钱包 (RainbowKit)
+│       │   │   │   ├── eth-provider.tsx   # WagmiProvider + RainbowKitProvider + QueryClientProvider
+│       │   │   │   └── eth-header.tsx     # Header + ConnectButton (MetaMask 支持)
+│       │   │   └── solana/    # Solana 钱包
 │       │   │   │   ├── SolanaProvider.tsx      # ConnectionProvider + WalletProvider + WalletModalProvider
 │       │   │   │   ├── SolanaConnectButton.tsx  # BaseWalletMultiButton 连接按钮
 │       │   │   │   ├── WalletInfoPanel.tsx     # 地址/网络/余额显示
@@ -58,6 +61,10 @@ packages/
   - `useSolanaBalance`: SOL 余额查询 hook（React Query，`queryKey` 包含 `networkId`）
   - `providers-dynamic`: 动态加载 Provider（`ssr: false`）并包裹 `NetworkProvider`
 - `Header`: 顶部导航栏，水平横向排列 `SolanaConnectButton` + `NetworkSelector`
+- **wallet/eth/** 模块：Ethereum 钱包连接 UI（支持 MetaMask + WalletConnect）
+  - `EthProvider`: Provider 链 (`WagmiProvider` → `RainbowKitProvider` → `QueryClientProvider`)
+  - `EthHeader`: 顶部导航栏，显示 `ConnectButton`（MetaMask 连接按钮）
+  - RainbowKit `<ConnectButton />` 提供钱包选择、连接、地址显示、网络指示器
 - tRPC `QueryClient` 使用 `apps/web/src/utils/trpc.ts` 中的单例，不自行创建
 
 ### apps/server
