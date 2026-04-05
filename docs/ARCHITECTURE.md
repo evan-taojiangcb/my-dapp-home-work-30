@@ -34,6 +34,11 @@ apps/
 │       │   │   │   ├── useSolanaBalance.ts      # SOL 余额查询 hook
 │       │   │   │   └── index.ts
 │       │   │   └── providers-dynamic.tsx  # 动态加载 Provider (ssr: false) + NetworkProvider
+│       │   │   └── eth/       # Ethereum 钱包 (RainbowKit + wagmi)
+│       │   │   │   ├── eth-provider.tsx          # WagmiProvider + RainbowKitProvider + QueryClientProvider (ssr:true)
+│       │   │   │   ├── eth-header.tsx            # Header + ConnectButton (MetaMask)
+│       │   │   │   ├── useOnChainNote.ts         # On-Chain Note 业务 hook (wagmi + viem)
+│       │   │   │   └── OnChainNotePanel.tsx      # 附言输入 + 链上回显组件
 │       │   └── ...
 │       └── utils/trpc.ts      # tRPC 客户端单例
 │   └── tests/                 # Vitest 单元测试 (apps/web 内)
@@ -52,6 +57,10 @@ packages/
 ### apps/web
 
 - 负责所有前端 UI 渲染和用户交互
+- **wallet/eth/** 模块：Ethereum 钱包连接 UI（RainbowKit + wagmi + viem）
+  - `eth-provider.tsx`: WagmiProvider + RainbowKitProvider，`ssr: true`
+  - `useOnChainNote.ts`: 数据上链 hook，使用 `useSendTransaction` + `useWaitForTransactionReceipt` + `usePublicClient`；gas 预检；状态机 idle→sending→confirming→success/error
+  - `OnChainNotePanel.tsx`: 附言输入（500字符）+ hex 预览 + 链上回显（hash/hex/原文）
 - **wallet/solana/** 模块：Solana 钱包连接 UI（支持 Devnet + Sepolia 网络选择）
   - `SolanaProvider`: Provider 链，读 `NetworkContext` 的 `endpoint`（`ConnectionProvider` → `WalletProvider` → `WalletModalProvider`）
   - `SolanaConnectButton`: 触发钱包连接（`BaseWalletMultiButton` + 自定义 labels，头部横向排列）

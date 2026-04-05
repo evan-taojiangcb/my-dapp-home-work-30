@@ -45,3 +45,17 @@ docs/iterations/
 - 标准需求运行 `/sdlc-doit <需求>`
 - 小任务运行 `/sdlc-doit-mini <需求>`
 - 配置见 `.env` 文件
+
+## 迭代索引
+
+| 日期 | 序号 | 描述 | 类型 |
+|------|------|------|------|
+| 2026-04-02 | 001 | solana-phantom-feature | feature |
+| 2026-04-02 | 002 | solana-wallet-ui-enhancement | feature |
+| 2026-04-02 | 003 | sepolia-eth-balance-fix | fix |
+| 2026-04-02 | 004 | transfer-panel-feature | feature |
+| 2026-04-02 | 005 | wallet-transfer-bugfix | fix |
+| 2026-04-05 | 001 | eth-header-wallet-feature | feature |
+| 2026-04-05 | 002 | wallet-connection-error-fix | fix |
+| 2026-04-05 | 003 | onchain-note-feature | feature |
+
