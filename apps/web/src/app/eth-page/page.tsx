@@ -1,5 +1,5 @@
 
-import OnChainNotePanel from "@/components/wallet/eth/OnChainNotePanel";
+import OnChainNotePanel from "./OnChainNotePanel";
 
 export default function Page() {
   return (
