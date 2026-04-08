@@ -1,6 +1,6 @@
 "use client";
-import SolanaConnectButton from "./wallet/solana/SolanaConnectButton";
-import NetworkSelector from "./wallet/solana/NetworkSelector";
+import SolanaConnectButton from "./SolanaConnectButton";
+import NetworkSelector from "./NetworkSelector";
 
 export default function Header() {
   return (

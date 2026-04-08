@@ -22,7 +22,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@my-dapp-home-work-30/ui/*": ["../../packages/ui/src/*"]
+      "@my-dapp-home-work-30/ui/*": ["../../packages/ui/src/*"],
+      "@my-dapp-home-work-30/contracts/*": ["../../packages/contracts/*"]
     },
     "types": ["@cloudflare/workers-types", "vitest/globals"]
   },

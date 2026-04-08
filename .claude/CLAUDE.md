@@ -45,7 +45,7 @@ docs/iterations/
 - 标准需求运行 `/sdlc-doit <需求>`
 - 小任务运行 `/sdlc-doit-mini <需求>`
 - 配置见 `.env` 文件
-
+/
 ## 迭代索引
 
 | 日期 | 序号 | 描述 | 类型 |

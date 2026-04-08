@@ -8,6 +8,15 @@ import {
 } from "wagmi";
 import { toHex, hexToString, formatEther } from "viem";
 
+/** 历史附言条目（链上历史 + 会话内新发送共用此类型） */
+export type HistoryItem = {
+  id: number;
+  text: string;
+  txHash: string;
+  /** 是否来自链上历史查询（而非本次会话新发送）*/
+  fromChain?: boolean;
+};
+
 /**
  * --- 状态机 ---
  *
@@ -53,25 +62,75 @@ const MEMO_RECEIVER =
 /** note 最大字节数；超出部分在 UI 层截断，sendNote 内部也会 guard */
 const MAX_CHARS = 500;
 
+/**
+ * 链上笔记（OnChainNote）交易的生命周期状态机。
+ *
+ * 状态说明：
+ * - **idle**        初始/空闲状态，用户尚未发起操作，或操作已结束（成功/失败）后的重置状态
+ * - **sending**     用户已触发「上链」操作，MetaMask 签名弹窗已弹出，正在等待用户确认或拒绝
+ * - **confirming**  交易签名完成，已广播到以太坊节点，正在等待区块打包确认
+ * - **success**     交易已被区块确认，且链上数据回显读取成功，笔记内容已可查验
+ * - **error**       交易生命周期内任意阶段失败，包括：用户拒绝签名、gas 估算失败、
+ *                   节点拒绝广播、区块确认后 revert、链上数据读取失败等
+ *
+ * 状态流转规则：
+ *   idle ──→ sending ──→ confirming ──→ success
+ *              │              │
+ *              ↓              ↓
+ *           error          error
+ *
+ * 账号或 chainId 变化时，任意状态强制 reset 回 idle。
+ *
+ * @see 上方状态机图示（完整流转）
+ */
 export type NoteStatus =
-  | "idle"
-  | "sending"
-  | "confirming"
-  | "success"
-  | "error";
+  | "idle"       // 初始状态，或操作完成后重置
+  | "sending"    // 等待 MetaMask 签名
+  | "confirming" // 交易已广播，等待区块确认
+  | "success"    // 链上确认 + 数据回显成功
+  | "error";     // 任意阶段失败
 
+/**
+ * useOnChainNote hook 向 UI 层暴露的完整状态集合。
+ *
+ * 字段分组（生命周期视角）：
+ * ───────────────────────────────────────────────────────────────
+ * [身份]  address / chainId          — 随钱包切换而变化，error 时 UI 应展示"未连接"
+ * [状态]  status                     — 核心状态机，决定 UI 当前应渲染哪个视图
+ * [交易]  txHash                     — confirming/success 阶段需要，idle 时为 undefined
+ * [回显]  onChainHex / onChainText   — 交易确认后从链上读取的回显数据
+ * [错误]  errorMsg                    — status==="error" 时填充，展示给用户的友好错误
+ * [预算]  hexPreview / estimatedGas / isGasLoading — 纯展示信息，不影响状态机
+ * ───────────────────────────────────────────────────────────────
+ */
 export interface OnChainNoteState {
+  /** 当前已连接钱包的地址，未连接时为 undefined */
   address: `0x${string}` | undefined;
+  /** 当前网络 ID（Sepolia=11155111，Hardhat=31337），切换网络时变化 */
   chainId: number | undefined;
+  /** 状态机当前阶段：idle → sending → confirming → success | error */
   status: NoteStatus;
+  /** 已签名交易 hash（status===confirming/success 时有值），用于区块浏览器链接 */
   txHash: `0x${string}` | undefined;
+  /** 链上回显的原始 hex（包含 0x 前缀），用于十六进制预览 */
   onChainHex: string | undefined;
+  /** 链上回显解码后的 UTF-8 字符串，解码失败时为 undefined */
   onChainText: string | undefined;
+  /** 错误消息（status==="error" 时填充），展示给用户 */
   errorMsg: string | undefined;
+  /** 实时 hex 预览（随 noteText 变化自动更新），用于发送前核对内容 */
   hexPreview: string;
+  /** 格式化后的 gas 估算费用字符串，估算失败时为 "(estimation failed)" */
   estimatedGas: string | undefined;
+  /** gas 估算是否进行中（估算中显示 loading spinner） */
   isGasLoading: boolean;
+  /** 链上历史附言记录（从 alchemy_getAssetTransfers 拉取），非 Alchemy 节点为空数组 */
+  chainHistory: HistoryItem[];
+  /** 链上历史是否正在加载 */
+  isHistoryLoading: boolean;
+  /** 触发「上链」流程：打开 MetaMask 签名 → 广播交易 → 等待确认 */
   sendNote: () => Promise<void>;
+  /** 重置所有状态为 idle，清空 txHash / onChainData / errorMsg */
   reset: () => void;
 }
 
@@ -93,15 +152,26 @@ export function useOnChainNote(noteText: string): OnChainNoteState {
    */
   const publicClient = usePublicClient();
 
+  /** 状态机阶段：idle | sending | confirming | success | error */
   const [status, setStatus] = useState<NoteStatus>("idle");
+  /** 已签名交易的 hash（由 MetaMask 返回），用于 confirm 阶段轮询回执 */
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined);
+  /** 链上回显的原始 hex（从 tx.input 读取），用于十六进制预览区 */
   const [onChainHex, setOnChainHex] = useState<string | undefined>(undefined);
+  /** 链上回显解码后的 UTF-8 字符串，解码失败时保持 undefined */
   const [onChainText, setOnChainText] = useState<string | undefined>(undefined);
+  /** 错误消息（status==="error" 时展示给用户），成功/sending 时清空 */
   const [errorMsg, setErrorMsg] = useState<string | undefined>(undefined);
+  /** 格式化 gas 费用字符串（例 "~0.00000123 ETH"），估算失败时为 undefined */
   const [estimatedGas, setEstimatedGas] = useState<string | undefined>(
     undefined,
   );
+  /** gas 估算是否进行中（控制估算期间 spinner 显示） */
   const [isGasLoading, setIsGasLoading] = useState(false);
+  /** 链上历史附言记录（通过 alchemy_getAssetTransfers 拉取） */
+  const [chainHistory, setChainHistory] = useState<HistoryItem[]>([]);
+  /** 链上历史加载状态 */
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
   /**
    * hexPreview（实时 hex 预览）
@@ -259,6 +329,96 @@ export function useOnChainNote(noteText: string): OnChainNoteState {
   }, [noteText, address, publicClient]);
 
   /**
+   * Effect：账号 / 链切换时从链上拉取历史附言记录
+   *
+   * 使用 Alchemy 私有方法 `alchemy_getAssetTransfers` 查询
+   * `from=address, to=MEMO_RECEIVER` 的历史 external 交易，
+   * 对每条交易读取 tx.input 并 hexToString 解码附言文本。
+   *
+   * 非 Alchemy 节点（如 Hardhat）调用会抛出 JSON-RPC method not found 错误，
+   * catch 后静默 fallback 为空数组，不影响功能正常使用。
+   */
+  useEffect(() => {
+    if (!address || !publicClient) {
+      setChainHistory([]);
+      return;
+    }
+
+    let cancelled = false;
+    setIsHistoryLoading(true);
+
+    async function fetchChainHistory() {
+      if (!publicClient || !address) return;
+      try {
+        // alchemy_getAssetTransfers: 查询 from→MEMO_RECEIVER 的历史交易
+        // 若非 Alchemy 节点会抛出 "Method not found" 错误，见 catch 处理
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (publicClient.request as (args: any) => Promise<any>)({
+          method: "alchemy_getAssetTransfers",
+          params: [
+            {
+              fromBlock: "0x0",
+              toBlock: "latest",
+              fromAddress: address,
+              toAddress: MEMO_RECEIVER,
+              withMetadata: false,
+              excludeZeroValue: false,
+              category: ["external"],
+              order: "desc",
+              maxCount: "0x14", // 最多 20 条
+            },
+          ],
+        }) as { transfers: Array<{ hash: string; blockNum: string }> };
+
+        if (cancelled) return;
+
+        // 并发读取每笔交易的 calldata
+        const items = await Promise.all(
+          result.transfers.map(async (t, idx) => {
+            try {
+              const tx = await publicClient.getTransaction({
+                hash: t.hash as `0x${string}`,
+              });
+              const rawHex = tx.input;
+              // 跳过无 calldata 的交易
+              if (!rawHex || rawHex === "0x") return null;
+              let text: string;
+              try {
+                text = hexToString(rawHex);
+              } catch {
+                return null; // 无法解码视为非附言交易，跳过
+              }
+              if (!text.trim()) return null;
+              return {
+                id: -(idx + 1), // 负数 id 区分链上历史与会话记录
+                text,
+                txHash: t.hash,
+                fromChain: true as const,
+              };
+            } catch {
+              return null;
+            }
+          }),
+        );
+
+        if (!cancelled) {
+          setChainHistory(items.filter((x): x is NonNullable<typeof x> => x !== null));
+        }
+      } catch {
+        // 非 Alchemy 节点（Hardhat 等）不支持此方法，静默 fallback
+        if (!cancelled) setChainHistory([]);
+      } finally {
+        if (!cancelled) setIsHistoryLoading(false);
+      }
+    }
+
+    void fetchChainHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, chainId, publicClient]);
+
+  /**
    * Effect：账号 / 链切换时重置所有状态
    * 当用户在 MetaMask 中切换账号或切换网络时，address / chainId 变化，
    * 旧的 txHash / status / 链上数据已失效，必须清空，防止 UI 显示错误数据。
@@ -350,6 +510,8 @@ export function useOnChainNote(noteText: string): OnChainNoteState {
     hexPreview,
     estimatedGas,
     isGasLoading,
+    chainHistory,
+    isHistoryLoading,
     sendNote,
     reset,
   };

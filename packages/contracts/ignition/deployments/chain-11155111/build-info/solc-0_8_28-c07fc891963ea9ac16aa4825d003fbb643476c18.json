@@ -1,0 +1,40 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-c07fc891963ea9ac16aa4825d003fbb643476c18",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/MessageBoard.sol": "project/contracts/MessageBoard.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/MessageBoard.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\n\ncontract MessageBoard {\n    event MessageWritten(\n        address indexed author,\n        string title,\n        string content,\n        uint256 createdAt\n    );\n\n    function writeMessage(\n        string calldata title,\n        string calldata content\n    ) external {\n        require(bytes(title).length > 0, \"Title cannot be empty\");\n        require(bytes(content).length > 0, \"Content cannot be empty\");\n        emit MessageWritten(msg.sender, title, content, block.timestamp);\n    }\n}"
+      }
+    }
+  }
+}

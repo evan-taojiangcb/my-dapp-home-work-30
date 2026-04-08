@@ -1,15 +1,13 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { mainnet, sepolia, hardhat } from "wagmi/chains";
 
 const env = process.env;
-
 const alchemyKey = env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-
 const config = getDefaultConfig({
   appName: "MyDapp-Ethereum",
   projectId: env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
-  chains: [mainnet, sepolia],
+  chains: [mainnet, sepolia, hardhat],
   ssr: true,
   transports: {
     [mainnet.id]: http(
@@ -24,6 +22,7 @@ const config = getDefaultConfig({
           ? `https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`
           : undefined,
     ),
+    [hardhat.id]: http("http://127.0.0.1:8545"),
   },
 });
 

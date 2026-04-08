@@ -2,8 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { trpc } from "@/utils/trpc";
-import WalletInfoPanel from "@/components/wallet/solana/WalletInfoPanel";
-import TransferPanel from "@/components/wallet/solana/TransferPanel";
 
 const TITLE_TEXT = `
  ██████╗ ███████╗████████╗████████╗███████╗██████╗
@@ -22,13 +20,13 @@ const TITLE_TEXT = `
  `;
 
 export default function Home() {
-  const healthCheck = useQuery(trpc.healthCheck.queryOptions());
+  // const healthCheck = useQuery(trpc.healthCheck.queryOptions());
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-2">
       <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
       <div className="grid gap-6">
-        <section className="rounded-xl border bg-card p-4 space-y-3">
+        {/* <section className="rounded-xl border bg-card p-4 space-y-3">
           <WalletInfoPanel />
         </section>
 
@@ -50,7 +48,7 @@ export default function Home() {
                   : "Disconnected"}
             </span>
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   );
