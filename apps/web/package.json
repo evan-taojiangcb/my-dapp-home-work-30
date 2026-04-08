@@ -5,17 +5,20 @@
   "scripts": {
     "build": "next build",
     "start": "next start",
-    "dev:bare": "next dev --port 3001"
+    "dev:bare": "next dev --port 3001",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@my-dapp-home-work-30/api": "workspace:*",
     "@my-dapp-home-work-30/env": "workspace:*",
     "@my-dapp-home-work-30/ui": "workspace:*",
     "@opennextjs/cloudflare": "^1.17.3",
-    "@rainbow-me/rainbowkit": "^2.0.0",
+    "@rainbow-me/rainbowkit": "^2.2.10",
     "@solana/wallet-adapter-phantom": "^0.9.28",
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.98.4",
     "@tanstack/react-query": "^5.90.12",
     "@trpc/client": "catalog:",
@@ -24,13 +27,14 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "bs58": "^6.0.0",
     "dotenv": "catalog:",
+    "jotai": "catalog:",
     "lucide-react": "catalog:",
     "next": "^16.2.0",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "sonner": "catalog:",
-    "viem": "^2.9.0",
+    "viem": "~2.47.6",
     "wagmi": "^2.19.5",
     "zod": "catalog:"
   },
@@ -43,6 +47,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "alchemy": "catalog:",
+    "shadcn": "^4.1.2",
     "tailwindcss": "catalog:",
     "typescript": "^5",
     "wrangler": "^4.77.0"

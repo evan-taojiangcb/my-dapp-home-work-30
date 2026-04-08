@@ -1,0 +1,23 @@
+{
+  "name": "message-board-sepolia-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy message-board-sepolia-demo"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.98.1"
+  },
+  "dependencies": {
+    "@my-dapp-home-work-30/contracts": "workspace:*",
+    "@graphprotocol/graph-ts": "^0.38.2"
+  }
+}

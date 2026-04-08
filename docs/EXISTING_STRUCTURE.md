@@ -4,72 +4,83 @@
 
 ```
 my-dapp-home-work-30/
+├── .claude/
+│   ├── CLAUDE.md              # 项目认知文档
+│   └── rules/
+│       └── workflow-rules.md  # SDLC 工作流规则
 ├── apps/
-│   ├── fumadocs/          # MDX 文档生成 (Next.js)
-│   ├── server/            # Hono + tRPC API 服务器
-│   └── web/               # 主 Web 应用 (Next.js + Cloudflare)
+│   ├── web/                   # Next.js 16 Web 前端（App Router）
+│   ├── server/                # Hono tRPC API Server
+│   └── fumadocs/              # Fumadocs 文档站点（独立 Next 实例）
 ├── packages/
-│   ├── api/               # tRPC 路由定义
-│   ├── config/            # TypeScript 配置共享包
-│   ├── db/                # Drizzle ORM schema
-│   ├── env/               # 环境变量类型校验
-│   ├── infra/             # Cloudflare/Alchemy 部署
-│   └── ui/                # shadcn/ui 组件库
-├── docs/                  # 项目文档
-├── tests/                 # 测试目录 (SDLC Workflow)
+│   ├── api/                   # tRPC 路由定义（供 server/web 共用）
+│   ├── config/                # tsconfig base 配置
+│   ├── db/                    # Drizzle ORM + SQLite schema
+│   ├── env/                   # t3-env 环境变量验证（server/web 分离）
+│   ├── infra/                 # Alchemy/Cloudflare Workers 部署
+│   └── ui/                    # React 共享 UI 组件库
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── CODING_GUIDELINES.md
+│   ├── SECURITY.md
+│   └── iterations/            # SDLC 迭代历史
+├── tests/
 │   ├── unit/
-│   │   ├── packages/
-│   │   ├── server/
-│   │   └── web/
 │   ├── e2e/
 │   └── reports/
-├── .claude/               # Claude Code 配置
-├── turbo.json             # Turborepo 配置
-├── pnpm-workspace.yaml     # pnpm workspace 配置
-└── package.json           # 根 workspace 配置
+├── package.json               # 根 workspace 配置
+├── pnpm-workspace.yaml        # catalog 分区配置
+├── turbo.json                 # Turbo 构建编排
+└── .env                       # 本地环境变量（已配置 TG_USERNAME）
 ```
 
 ## 每个 Workspace 的职责
 
-| Workspace | 职责 | 关键文件 |
-|-----------|------|----------|
-| `apps/web` | 主前端应用，Next.js 16 + tRPC + React Query + Cloudflare 部署 | `next.config.ts`, `app/` |
-| `apps/server` | API 服务器，Hono + tRPC Server | `src/index.ts` |
-| `apps/fumadocs` | MDX 文档站点 | `next.config.ts` |
-| `packages/api` | tRPC 路由与 API 业务逻辑复用 | `src/` |
-| `packages/db` | Drizzle ORM schema 与数据库操作 | `src/`, `drizzle.config.ts` |
-| `packages/env` | 环境变量类型校验（server/web 分离） | `src/server.ts`, `src/web.ts` |
-| `packages/ui` | 共享 UI 组件、样式、hooks | `src/components/`, `src/styles/` |
-| `packages/infra` | Alchemy/Cloudflare 部署配置 | `.env`, `wrangler.json` |
-| `packages/config` | TypeScript tsconfig 扩展 | `tsconfig.json` |
+| Workspace | 职责 | 依赖关系 |
+|-----------|------|---------|
+| `apps/web` | Next.js 16 前端页面、Solana/Ethereum 钱包连接、tRPC Client | `@my-dapp-home-work-30/api`、`@my-dapp-home-work-30/env`、`@my-dapp-home-work-30/ui` |
+| `apps/server` | Hono + tRPC Server、提供 REST/WebSocket API 入口 | `@my-dapp-home-work-30/api`、`@my-dapp-home-work-30/db`、`@my-dapp-home-work-30/env` |
+| `apps/fumadocs` | MDX 文档站点，LLM 友好格式输出 | 独立 Next 实例，无内部包依赖 |
+| `packages/api` | tRPC 路由定义（todo 等），router 聚合 | `@my-dapp-home-work-30/db`、`@my-dapp-home-work-30/env` |
+| `packages/config` | tsconfig.json base.json，共享 TS 配置 | 无 |
+| `packages/db` | Drizzle ORM schema、migrate/push/studio 脚本 | 无 |
+| `packages/env` | t3-env Core 验证，server.ts / web.ts 分离导出 | zod |
+| `packages/infra` | Alchemy deploy/destroy/cloudflare workers 部署 | `@my-dapp-home-work-30/config` |
+| `packages/ui` | Radix UI 组件、button/input/checkbox/dropdown 等 | React 19 |
 
-## 现有目录偏离默认约定的地方
+## 现有目录偏离 Better-T-Stack 默认约定的地方
 
-| 位置 | 偏离内容 | 说明 |
-|------|----------|------|
-| `apps/fumadocs` | 非默认应用，增加了文档站点 | 与 Better-T-Stack 模板的 `apps/web` + `apps/server` 不同 |
-| `packages/infra` | 独立部署配置包 | 通常部署配置在 app 内，此处单独成包 |
-| `apps/web` 使用 `opennextjs/cloudflare` | 部署路径特殊 | 通过 Alchemy 部署到 Cloudflare Workers |
+| 实际结构 | Better-T-Stack 默认 | 偏离说明 |
+|---------|-------------------|---------|
+| `apps/fumadocs` 替代 `apps/docs` | Better-T-Stack 建议 `apps/docs` | fumadocs 是独立 MDX 文档框架，与 `apps/docs` 定位不同但等效 |
+| `packages/infra` 使用 Alchemy | Better-T-Stack 默认无 | 为 Web3 项目特供，与 Cloudflare Workers 配合 |
+| `packages/api` + `apps/server` 分离 | Better-T-Stack 无强制分离 | tRPC router 层独立是已有架构选择，不得随意合并 |
+| `apps/web` 使用 `@opennextjs/cloudflare` | Next.js 默认 Node.js 适配器 | Cloudflare Workers 特供部署适配 |
 
 ## 哪些目录属于历史事实（禁止随意变更）
 
-- **`apps/web/` 结构** — 已通过 Alchemy 绑定 Cloudflare，修改部署路径需重新配置
-- **`packages/db/` schema** — 直接关联 PostgreSQL，schema 变更需走 migration 流程
-- **`packages/env/`** — 已配置 server/web 分离的环境校验逻辑，修改需同步更新两个 target
-- **`packages/infra/.env`** — 包含 Cloudflare API token 和 account ID，已配置在 Cloudflare MCP
+| 目录/文件 | 变更限制 |
+|-----------|---------|
+| `apps/web/src/utils/trpc.ts` | tRPC client 初始化，已配置 Web3 wallet context |
+| `packages/api/src/routers/todo.ts` | tRPC router 定义方式已固化 |
+| `packages/db/src/schema/` | Drizzle ORM schema 定义，与数据库结构强绑定 |
+| `apps/server/src/index.ts` | Hono server 入口，路由注册中心 |
+| `packages/env/src/server.ts` + `packages/env/src/web.ts` | 环境变量验证模式，已分离 server/web |
+| `apps/web/src/app/todos/page.tsx` | 已有 Todo 页面作为业务示例 |
+| `turbo.json` | 构建任务编排逻辑，修改会影响全量构建 |
 
-## 哪些目录禁止本轮需求随意变更
+## 结构保护规则（已生效）
 
-1. **`packages/infra/`** — Cloudflare 部署配置已验证可用
-2. **`apps/web/next.config.ts`** — Next.js 编译配置已针对 Cloudflare 优化
-3. **`packages/env/`** — 环境变量类型校验已正确分离 server/web
-4. **所有 `.env` 文件** — 已配置 credentials
+> 来源：existing project intake — 以下规则约束后续所有 SDLC 步骤
 
-## 目录锁定规则
+1. **不得**将本项目当 fresh project 重建目录结构
+2. **不得**在根目录新建 `src/`、`web/`、`api/` 等业务代码目录
+3. **不得**将 `packages/api` 的 router 定义移入 `apps/server`
+4. **不得**替换 Drizzle ORM 为其他 ORM（除非 `design.md` 明确批准）
+5. **不得**将 `packages/env` 的 server/web 分离模式合并
+6. 所有 `requirements.md` / `design.md` / `tasks.md` 必须引用本 baseline 的对应条目
+7. Gate 1（设计审查）必须检查是否越界（见上方禁止变更列表）
+8. Gate 2（代码审查）必须检查 `packages/api`、`packages/db` 是否有未经批准的结构变更
 
-进入 SDLC workflow 后，任何涉及以下目录结构变更的需求，必须在 `design.md` 中明确说明"延续现有结构"或"已批准的结构调整"：
-
-- `apps/*`
-- `packages/*`
-- `turbo.json`
-- `pnpm-workspace.yaml`
+---
+*Generated by SDLC Workflow sdlc-init (existing project intake)*

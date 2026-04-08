@@ -1,0 +1,25 @@
+specVersion: 1.3.0
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum
+    name: MessageBoard
+    network: sepolia
+    source:
+      address: "0x20CD59B47e1D1a6e8f86Ce57dDEDfdEd9c7566F8"
+      abi: MessageBoard
+      startBlock: 10607984
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Message
+      abis:
+        - name: MessageBoard
+          file: ./abis/MessageBoard.json
+      eventHandlers:
+        - event: MessageWritten(indexed address,string,string,uint256)
+          handler: handleMessageWritten
+      file: ./src/message-board.ts

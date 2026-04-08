@@ -1,0 +1,10 @@
+type Message @entity(immutable: true) {
+  id: ID!
+  author: Bytes!
+  title: String!
+  content: String!
+  createdAt: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

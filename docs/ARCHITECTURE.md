@@ -1,86 +1,171 @@
 # Architecture
 
 ## 系统概要
-<!-- 请描述系统整体架构 -->
+
+Web3 DApp，支持 Ethereum 和 Solana 双链钱包连接。前端使用 Next.js App Router，后端使用 tRPC + Cloudflare Workers。
 
 ## 技术栈
-<!-- 列出核心技术选型及版本 -->
 
-**钱包 & Web3**:
-- `wagmi` v2 + `viem` v2 — Ethereum 交互
-- `@rainbow-me/rainbowkit` v2 — EVM 钱包连接 UI
-- `@solana/wallet-adapter-react` + `@solana/wallet-adapter-phantom` — Solana 钱包
+- **前端**: Next.js 16 (App Router), React 19, TailwindCSS 4, shadcn/ui
+- **状态/数据**: TanStack Query (React Query) v5, tRPC v11
+- **钱包集成**: @solana/wallet-adapter (React UI + Phantom adapter), RainbowKit + Wagmi (Ethereum)
+- **区块链**: @solana/web3.js v1, Ethereum via RainbowKit + WalletConnect (MetaMask supported)
+- **部署**: Cloudflare Pages + Workers (OpenNext.js adapter)
+- **Monorepo**: pnpm workspaces, Turbo v2
 
 ## 目录约定
 
-默认采用 Better-T-Stack 风格 monorepo：
-
-```text
+```
 apps/
-├── web/          # Web 前端
-├── server/       # 后端 API / BFF / Worker
-├── native/       # 移动端（可选）
-└── docs/         # 文档站点（可选）
-
+├── web/          # Web 前端 (Next.js)
+│   └── src/
+│       ├── app/               # Next.js App Router 页面
+│       ├── components/        # React 组件
+│       │   ├── wallet/        # 钱包集成组件
+│       │   │   ├── eth/       # Ethereum 钱包 (RainbowKit)
+│       │   │   │   ├── eth-provider.tsx   # WagmiProvider + RainbowKitProvider + QueryClientProvider
+│       │   │   │   └── eth-header.tsx     # Header + ConnectButton (MetaMask 支持)
+│       │   │   └── solana/    # Solana 钱包
+│       │   │   │   ├── SolanaProvider.tsx      # ConnectionProvider + WalletProvider + WalletModalProvider
+│       │   │   │   ├── SolanaConnectButton.tsx  # BaseWalletMultiButton 连接按钮
+│       │   │   │   ├── WalletInfoPanel.tsx     # 地址/网络/余额显示
+│       │   │   │   ├── NetworkSelector.tsx      # 网络下拉选择器
+│       │   │   │   ├── NetworkProvider.tsx      # 网络 Context (networkId, endpoint, isSepolia)
+│       │   │   │   ├── useSolanaBalance.ts      # SOL 余额查询 hook
+│       │   │   │   └── index.ts
+│       │   │   └── providers-dynamic.tsx  # 动态加载 Provider (ssr: false) + NetworkProvider
+│       │   │   └── eth/       # Ethereum 钱包 (RainbowKit + wagmi)
+│       │   │   │   ├── eth-provider.tsx          # WagmiProvider + RainbowKitProvider + QueryClientProvider (ssr:true)
+│       │   │   │   ├── eth-header.tsx            # Header + ConnectButton (MetaMask)
+│       │   │   │   ├── useOnChainNote.ts         # On-Chain Note 业务 hook (wagmi + viem)
+│       │   │   │   └── OnChainNotePanel.tsx      # 附言输入 + 链上回显组件
+│       │   └── ...
+│       └── utils/trpc.ts      # tRPC 客户端单例
+│   └── tests/                 # Vitest 单元测试 (apps/web 内)
+├── server/       # Cloudflare Workers (tRPC 路由)
 packages/
-├── config/       # 始终存在
-├── env/          # 存在前端或后端时
-├── api/          # 启用 API 层时
-├── auth/         # 启用认证时
-├── db/           # 启用数据库 + ORM 时
-├── infra/        # 启用 Cloudflare / infra 时
-└── ui/           # React Web 共享 UI 时
+├── config/       # ESLint / TypeScript 共享配置
+├── env/          # 环境变量 schema 验证
+├── api/          # tRPC 路由定义
+├── auth/         # 认证逻辑
+├── db/           # Drizzle ORM schema + 客户端
+└── ui/           # 共享 UI 组件库
 ```
 
-约束：
-
-- Web UI 和页面逻辑默认放在 `apps/web/src/`
-- 后端入口、路由、服务默认放在 `apps/server/src/`
-- 共享逻辑优先进入 `packages/*`，并根据所选能力启用对应包
-- 默认不新增根目录级 `web/`、`server/`、`api/`、`frontend/`、`backend/`
-- 若偏离该结构，必须记录原因和影响范围
-
 ## 模块结构
-<!-- 描述主要模块及其职责 -->
 
-建议至少说明：
+### apps/web
 
-- `apps/web` 负责什么
-- `apps/server` 负责什么
-- `packages/*` 中有哪些共享模块
-- 哪些模块禁止跨层直接依赖
+- 负责所有前端 UI 渲染和用户交互
+- **wallet/eth/** 模块：Ethereum 钱包连接 UI（RainbowKit + wagmi + viem）
+  - `eth-provider.tsx`: WagmiProvider + RainbowKitProvider，`ssr: true`
+  - `useOnChainNote.ts`: 数据上链 hook，使用 `useSendTransaction` + `useWaitForTransactionReceipt` + `usePublicClient`；gas 预检；状态机 idle→sending→confirming→success/error
+  - `OnChainNotePanel.tsx`: 附言输入（500字符）+ hex 预览 + 链上回显（hash/hex/原文）
+- **wallet/solana/** 模块：Solana 钱包连接 UI（支持 Devnet + Sepolia 网络选择）
+  - `SolanaProvider`: Provider 链，读 `NetworkContext` 的 `endpoint`（`ConnectionProvider` → `WalletProvider` → `WalletModalProvider`）
+  - `SolanaConnectButton`: 触发钱包连接（`BaseWalletMultiButton` + 自定义 labels，头部横向排列）
+  - `WalletInfoPanel`: 连接后显示地址/当前网络/余额；Sepolia 模式显示 "— ETH" 占位符
+  - `NetworkProvider`: 网络 Context（`networkId`、`endpoint`、`isSepolia`）
+  - `NetworkSelector`: 下拉选择器，支持 Solana Devnet / Ethereum Sepolia
+  - `useSolanaBalance`: SOL 余额查询 hook（React Query，`queryKey` 包含 `networkId`）
+  - `providers-dynamic`: 动态加载 Provider（`ssr: false`）并包裹 `NetworkProvider`
+- `Header`: 顶部导航栏，水平横向排列 `SolanaConnectButton` + `NetworkSelector`
+- **wallet/eth/** 模块：Ethereum 钱包连接 UI（支持 MetaMask + WalletConnect）
+  - `EthProvider`: Provider 链 (`WagmiProvider` → `RainbowKitProvider` → `QueryClientProvider`)
+  - `EthHeader`: 顶部导航栏，显示 `ConnectButton`（MetaMask 连接按钮）
+  - RainbowKit `<ConnectButton />` 提供钱包选择、连接、地址显示、网络指示器
+- tRPC `QueryClient` 使用 `apps/web/src/utils/trpc.ts` 中的单例，不自行创建
 
-### 钱包模块 (`apps/web/src/components/wallet/`)
+### apps/server
 
-| 文件 | 职责 |
-|------|------|
-| `wallet-providers.tsx` | 统一：wagmi v2 + RainbowKit v2 + Solana adapter（ssr:false 内运行）|
-| `wallet-button.tsx` | RainbowKit ConnectButton，EVM 连接入口 |
-| `providers-dynamic.tsx` | 动态入口（`ssr:false`），防止 WalletConnect indexedDB SSR 错误 |
-| `providers.tsx` | Base providers（Theme + trpc QueryClient + Toaster，**无钱包导入**）|
+- tRPC 路由暴露 REST API
+- 提供 `healthCheck` 等端点
 
-**Provider 嵌套顺序**（由外到内）:
-`layout.tsx` → `WalletDynamicProviders(ssr:false)` → `Providers` → `WagmiProvider` → `QueryClientProvider(wagmi)` → `RainbowKitProvider` → `SolanaProvider` → `WalletModalProvider` → `children`
+### packages/api
 
-**SSR 安全机制**: 整个钱包模块通过 `next/dynamic({ ssr: false })` 加载，确保 WalletConnect SignClient（使用 indexedDB）永不服务端执行。`ReactQueryDevtools` 也位于 `ssr:false` 树内以访问 `QueryClientProvider`。
+- tRPC router 定义
+- context 构建
 
 ## 数据流
-<!-- 描述数据如何在系统中流转 -->
+
+```
+用户点击 "Connect to Phantom"
+  → BaseWalletMultiButton (no-wallet state) → 打开 WalletModal
+    → 用户选择 Phantom → PhantomWalletAdapter.connect()
+      → 钱包公钥写入 React Context（useWallet）
+        → useSolanaBalance(publicKey, networkId) 启用 React Query
+          → connection.getBalance(publicKey) via Solana Devnet RPC
+            → 余额显示在 WalletInfoPanel
+
+用户切换网络（NetworkSelector）
+  → setNetworkId(newNetworkId)
+    → NetworkContext 更新 → SolanaProvider 内部重新渲染
+      → ConnectionProvider 使用新 endpoint 重新创建连接
+        → useSolanaBalance 触发 re-fetch（新 queryKey 包含 networkId）
+          → 余额/网络/币种显示同步更新
+
+Phantom 切换账号（Phantom 弹窗内操作）
+  → useWallet().publicKey 变更
+    → 组件树自动 re-render
+      → useSolanaBalance 触发 re-fetch（新 queryKey 包含新 publicKey）
+        → WalletInfoPanel 地址/余额自动更新
+```
 
 ## 外部依赖
-<!-- 列出外部服务、API、数据库等 -->
 
-### 钱包服务
+| 依赖 | 用途 | 约束 |
+|------|------|------|
+| `api.devnet.solana.com` | Solana Devnet RPC | 支持 Devnet，Sepolia 为占位符 |
+| `@solana/wallet-adapter-react-ui` | 钱包连接 UI | 需 `ssr: false` 动态加载 |
+| `@tanstack/react-query` | React Query v5 | 使用 `apps/web/src/utils/trpc.ts` 中的 `queryClient` 单例 |
+| `sonner` | Toast 通知 | NetworkSelector 切换提示 |
 
-| 服务 | 用途 | 配置变量 |
-|------|------|----------|
-| WalletConnect | EVM 钱包连接 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` |
-| Alchemy | Ethereum RPC 节点 | `NEXT_PUBLIC_ALCHEMY_API_KEY` |
-| Phantom | Solana 钱包连接 | 无需 API Key |
-| Solana RPC | Solana 集群通信 | `NEXT_PUBLIC_SOLANA_RPC_URL`, `NEXT_PUBLIC_SOLANA_CLUSTER` |
+## 钱包集成设计
+
+### SSR 兼容性
+
+`PhantomWalletAdapter` 在模块初始化时访问 `window`。Next.js SSR 阶段无 `window`，会导致错误。解决方案：
+
+```tsx
+// providers-dynamic.tsx
+const SolanaProvider = dynamic(() => import("./solana/SolanaProvider"), { ssr: false });
+```
+
+### Provider 链
+
+```
+<QueryClientProvider client={queryClient}>   // 使用 trpc.ts 中的单例
+  <NetworkProvider>                          // 网络 Context（networkId, endpoint, isSepolia）
+    <SolanaProvider>                          // 动态加载（ssr: false），内部读取 network.endpoint
+      {children}
+    </SolanaProvider>
+  </NetworkProvider>
+</QueryClientProvider>
+```
+
+**SolanaProvider 内部逻辑**：根据 `network.endpoint` 决定渲染内容：
+- 有 endpoint（Solana Devnet）→ 正常渲染 `ConnectionProvider` → `WalletProvider` → `WalletModalProvider`
+- 空 endpoint（Sepolia）→ 直接渲染 children（占位符，不建立实际连接）
+
+### 钱包按钮标签 (AC-001 / AC-007)
+
+- `no-wallet` → "Connect to Phantom"（无钱包扩展时显示）
+- `has-wallet` → "Connect"（保持默认，不覆盖）
+- "Install Phantom" 提示由 WalletModal 触发，不在按钮标签层
+
+### 余额查询
+
+- `useSolanaBalance(publicKey)` 使用 `enabled: !!publicKey` 控制查询启用
+- React Query 默认重试 3 次，失败后 `isError: true` → UI 显示 "— SOL"
+- 异常不吞掉，由 React Query 处理
+- `staleTime: 30_000`（30 秒）
 
 ## 部署架构
-<!-- 描述部署环境和方式 -->
+
+- Cloudflare Pages (Next.js) + Cloudflare Workers (tRPC API)
+- `open-next.config.ts` 配置 Cloudflare Workers 适配器
+- 环境变量通过 `packages/env` 的 Zod schema 验证
 
 ## 目录偏离记录
-<!-- 若未采用上述 monorepo 结构，在这里记录原因、风险和后续迁移计划 -->
+
+- `apps/web/tests/unit/` 位于 `apps/web/` 内而非 monorepo 根 `tests/unit/web/`：原因：pnpm monorepo 默认 `shamefully-hoist=false`，workspace packages 无法从根目录 node_modules 解析。将测试放在 apps/web 内确保 vitest 能正确解析 `@solana/wallet-adapter-*` 和 `@tanstack/react-query`。

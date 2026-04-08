@@ -1,0 +1,38 @@
+- generic [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e42]:
+    - banner [ref=e43]:
+      - heading "My Dapp" [level=1] [ref=e44]
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - button "Phantom icon F6Yz..BsCt" [active]:
+            - generic:
+              - img "Phantom icon"
+            - text: F6Yz..BsCt
+          - menu "dropdown-list" [ref=e72]:
+            - menuitem "Copy address" [ref=e73] [cursor=pointer]
+            - menuitem "Change wallet" [ref=e74] [cursor=pointer]
+            - menuitem "Disconnect" [ref=e75] [cursor=pointer]
+        - combobox [ref=e50] [cursor=pointer]:
+          - option "Solana Devnet (SOL)"
+          - option "Ethereum Sepolia (ETH)" [selected]
+    - generic [ref=e51]:
+      - generic [ref=e52]: ██████╗ ███████╗████████╗████████╗███████╗██████╗ ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗ ██████╔╝█████╗ ██║ ██║ █████╗ ██████╔╝ ██╔══██╗██╔══╝ ██║ ██║ ██╔══╝ ██╔══██╗ ██████╔╝███████╗ ██║ ██║ ███████╗██║ ██║ ╚═════╝ ╚══════╝ ╚═╝ ╚═╝ ╚══════╝╚═╝ ╚═╝ ████████╗ ███████╗████████╗ █████╗ ██████╗██╗ ██╗ ╚══██╔══╝ ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝ ██║ ███████╗ ██║ ███████║██║ █████╔╝ ██║ ╚════██║ ██║ ██╔══██║██║ ██╔═██╗ ██║ ███████║ ██║ ██║ ██║╚██████╗██║ ██╗ ╚═╝ ╚══════╝ ╚═╝ ╚═╝ ╚═╝ ╚═════╝╚═╝ ╚═╝
+      - generic [ref=e53]:
+        - generic [ref=e55]:
+          - heading "Wallet" [level=3] [ref=e56]
+          - generic [ref=e57]:
+            - paragraph [ref=e58]: Address
+            - button "F6Yz...BsCt" [ref=e59]
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: Network
+            - paragraph [ref=e62]: Ethereum Sepolia
+          - generic [ref=e63]:
+            - paragraph [ref=e64]: Balance
+            - paragraph [ref=e65]: — ETH
+          - button "Disconnect" [ref=e66]
+        - generic [ref=e67]:
+          - heading "API Status" [level=2] [ref=e68]
+          - generic [ref=e71]: Disconnected

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "baseUrl": ".",
@@ -22,9 +22,10 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@my-dapp-home-work-30/ui/*": ["../../packages/ui/src/*"]
+      "@my-dapp-home-work-30/ui/*": ["../../packages/ui/src/*"],
+      "@my-dapp-home-work-30/contracts/*": ["../../packages/contracts/*"]
     },
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types", "vitest/globals"]
   },
   "include": [
     "next-env.d.ts",

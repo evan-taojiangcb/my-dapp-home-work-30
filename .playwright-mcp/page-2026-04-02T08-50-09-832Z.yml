@@ -1,0 +1,17 @@
+- generic [active] [ref=e11]:
+  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+    - img [ref=e7]
+  - alert [ref=e10]
+  - generic [ref=e28]:
+    - banner [ref=e29]:
+      - heading "My Dapp" [level=1] [ref=e30]
+      - generic [ref=e31]:
+        - button "Connect to Phantom" [ref=e33] [cursor=pointer]
+        - combobox [ref=e34] [cursor=pointer]:
+          - option "Solana Devnet (SOL)"
+          - option "Ethereum Sepolia (ETH)" [selected]
+    - generic [ref=e35]:
+      - generic [ref=e36]: ██████╗ ███████╗████████╗████████╗███████╗██████╗ ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗ ██████╔╝█████╗ ██║ ██║ █████╗ ██████╔╝ ██╔══██╗██╔══╝ ██║ ██║ ██╔══╝ ██╔══██╗ ██████╔╝███████╗ ██║ ██║ ███████╗██║ ██║ ╚═════╝ ╚══════╝ ╚═╝ ╚═╝ ╚══════╝╚═╝ ╚═╝ ████████╗ ███████╗████████╗ █████╗ ██████╗██╗ ██╗ ╚══██╔══╝ ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝ ██║ ███████╗ ██║ ███████║██║ █████╔╝ ██║ ╚════██║ ██║ ██╔══██║██║ ██╔═██╗ ██║ ███████║ ██║ ██║ ██║╚██████╗██║ ██╗ ╚═╝ ╚══════╝ ╚═╝ ╚═╝ ╚═╝ ╚═════╝╚═╝ ╚═╝
+      - generic [ref=e39]:
+        - heading "API Status" [level=2] [ref=e40]
+        - generic [ref=e43]: Checking...

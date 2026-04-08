@@ -1,0 +1,28 @@
+- generic [active] [ref=e11]:
+  - generic [ref=e5] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e6]:
+      - img [ref=e7]
+    - generic [ref=e28]:
+      - button "Open issues overlay" [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: "3"
+          - generic [ref=e32]: "4"
+        - generic [ref=e33]:
+          - text: Issue
+          - generic [ref=e34]: s
+      - button "Collapse issues badge" [ref=e35]:
+        - img [ref=e36]
+  - alert [ref=e10]
+  - generic [ref=e38]:
+    - banner [ref=e39]:
+      - heading "My Dapp" [level=1] [ref=e40]
+      - generic [ref=e41]:
+        - button "Connect to Phantom" [ref=e43] [cursor=pointer]
+        - combobox [ref=e44] [cursor=pointer]:
+          - option "Solana Devnet (SOL)"
+          - option "Ethereum Sepolia (ETH)" [selected]
+    - generic [ref=e45]:
+      - generic [ref=e46]: ██████╗ ███████╗████████╗████████╗███████╗██████╗ ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗ ██████╔╝█████╗ ██║ ██║ █████╗ ██████╔╝ ██╔══██╗██╔══╝ ██║ ██║ ██╔══╝ ██╔══██╗ ██████╔╝███████╗ ██║ ██║ ███████╗██║ ██║ ╚═════╝ ╚══════╝ ╚═╝ ╚═╝ ╚══════╝╚═╝ ╚═╝ ████████╗ ███████╗████████╗ █████╗ ██████╗██╗ ██╗ ╚══██╔══╝ ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝ ██║ ███████╗ ██║ ███████║██║ █████╔╝ ██║ ╚════██║ ██║ ██╔══██║██║ ██╔═██╗ ██║ ███████║ ██║ ██║ ██║╚██████╗██║ ██╗ ╚═╝ ╚══════╝ ╚═╝ ╚═╝ ╚═╝ ╚═════╝╚═╝ ╚═╝
+      - generic [ref=e49]:
+        - heading "API Status" [level=2] [ref=e50]
+        - generic [ref=e53]: Checking...

@@ -1,0 +1,57 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - heading "My ETH Dapp" [level=1] [ref=e6]
+      - button "连接钱包" [ref=e8] [cursor=pointer]
+    - generic [ref=e9]: ETH Page
+  - button "Open Next.js Dev Tools" [ref=e15] [cursor=pointer]:
+    - img [ref=e16]
+  - alert [ref=e19]
+  - dialog "连接钱包" [ref=e20]:
+    - document [ref=e21]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - heading "连接钱包" [level=1] [ref=e29]
+          - generic [ref=e30]:
+            - generic [ref=e32]: 已安装
+            - button "Phantom 近期" [ref=e35] [cursor=pointer]:
+              - generic [ref=e37]:
+                - img [ref=e38]:
+                  - img [ref=e39]
+                - generic [ref=e40]:
+                  - generic [ref=e41]: Phantom
+                  - generic [ref=e42]: 近期
+            - generic [ref=e44]: 流行
+            - generic [ref=e45]:
+              - button "MetaMask 近期" [disabled] [ref=e47] [cursor=pointer]:
+                - generic [ref=e49]:
+                  - img [ref=e50]:
+                    - img [ref=e51]
+                  - generic [ref=e53]:
+                    - generic [ref=e54]: MetaMask
+                    - generic [ref=e55]: 近期
+              - button "Rainbow" [ref=e57] [cursor=pointer]:
+                - generic [ref=e59]:
+                  - img [ref=e60]:
+                    - img [ref=e61]
+                  - generic [ref=e64]: Rainbow
+              - button "Base Account" [ref=e66] [cursor=pointer]:
+                - generic [ref=e68]:
+                  - img [ref=e69]:
+                    - img [ref=e70]
+                  - generic [ref=e73]: Base Account
+              - button "WalletConnect" [ref=e75] [cursor=pointer]:
+                - generic [ref=e77]:
+                  - img [ref=e78]:
+                    - img [ref=e79]
+                  - generic [ref=e82]: WalletConnect
+        - generic [ref=e84]:
+          - button "Close" [ref=e86] [cursor=pointer]:
+            - img [ref=e87]
+          - generic [ref=e116]:
+            - img [ref=e118]:
+              - img [ref=e119]
+            - generic [ref=e120]:
+              - generic [ref=e121]: 正在打开 MetaMask...
+              - generic [ref=e123]: 在扩展中确认连接
+              - img "Loading" [ref=e126]
