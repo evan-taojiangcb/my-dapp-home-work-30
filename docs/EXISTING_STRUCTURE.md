@@ -57,6 +57,20 @@ my-dapp-home-work-30/
 | `packages/api` + `apps/server` 分离 | Better-T-Stack 无强制分离 | tRPC router 层独立是已有架构选择，不得随意合并 |
 | `apps/web` 使用 `@opennextjs/cloudflare` | Next.js 默认 Node.js 适配器 | Cloudflare Workers 特供部署适配 |
 
+## 2026-04-13 新增目录（USDC 红包功能）
+
+| 新增路径 | 说明 |
+|---------|------|
+| `apps/web/src/app/red-packet/` | USDC 红包前端路由（layout + page + 3 hooks + 2 panels + constant） |
+| `packages/contracts/contracts/USDCRedPacket.sol` | 红包合约（create/claim/refund/getPacket） |
+| `packages/contracts/contracts/MockERC20.sol` | 本地测试用 ERC20 mock（6 decimals） |
+| `packages/contracts/test/USDCRedPacket.ts` | 合约测试（6/6 PASS） |
+| `packages/contracts/ignition/modules/USDCRedPacket.ts` | Hardhat Ignition 部署模块 |
+| `tests/unit/packages/contracts/USDCRedPacket.test.ts` | 单元测试覆盖报告 |
+| `tests/e2e/usdc-redpacket/` | E2E 测试骨架（E2E-001、E2E-002） |
+
+---
+
 ## 哪些目录属于历史事实（禁止随意变更）
 
 | 目录/文件 | 变更限制 |

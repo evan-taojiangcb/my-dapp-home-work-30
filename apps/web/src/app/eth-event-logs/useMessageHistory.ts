@@ -147,7 +147,7 @@ export function useMessageHistory(params?: UseMessageHistoryParams) {
             const found = nextBatch.some(
               (item) =>
                 item.transactionHash.toLowerCase() ===
-                expectedTxHash.toLowerCase(),
+                (expectedTxHash ?? "").toLowerCase(),
             );
 
             if (found || attempt >= 5) {

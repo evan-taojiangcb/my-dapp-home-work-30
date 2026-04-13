@@ -1,0 +1,14 @@
+{
+  "phase": "approved",
+  "proposal_at": "2026-04-13T00:00:00+08:00",
+  "reviewed_at": "2026-04-13T00:01:00+08:00",
+  "applied_at": null,
+  "reviewer": "cli-apply",
+  "iter_dir": "docs/iterations/2026-04-13/001-usdc-redpacket-feature/",
+  "summary": {
+    "requirement_count": 8,
+    "task_count": 12,
+    "estimated_hours": 8.5
+  },
+  "gate1": "PASS"
+}
