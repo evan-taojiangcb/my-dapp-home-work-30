@@ -1,9 +1,11 @@
 {
-  "phase": "approved",
+  "phase": "applied",
   "proposal_at": "2026-04-13T00:00:00+08:00",
   "reviewed_at": "2026-04-13T00:01:00+08:00",
-  "applied_at": null,
+  "applied_at": "2026-04-13T12:00:00+08:00",
   "reviewer": "cli-apply",
+  "branch": "feat/usdc-redpacket-2026-04-13",
+  "commit": "7ffb010",
   "iter_dir": "docs/iterations/2026-04-13/001-usdc-redpacket-feature/",
   "summary": {
     "requirement_count": 8,
