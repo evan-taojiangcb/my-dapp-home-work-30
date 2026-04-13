@@ -125,14 +125,17 @@ export function useCreateRedPacket() {
     isRandom: boolean,
   ) {
     if (!isConnected || !address) {
+      setStatus(RedPacketStatus.ERROR);
       setErrorMsg("Please connect your wallet first");
       return;
     }
     if (isWrongChain) {
+      setStatus(RedPacketStatus.ERROR);
       setErrorMsg("Please switch to Sepolia network");
       return;
     }
     if (!RED_PACKET_ADDRESS) {
+      setStatus(RedPacketStatus.ERROR);
       setErrorMsg("Contract address not configured");
       return;
     }
@@ -149,6 +152,7 @@ export function useCreateRedPacket() {
         abi: ERC20_ABI,
         functionName: "approve",
         args: [RED_PACKET_ADDRESS, amountWei],
+        gas: 100_000n,
       });
       setApproveTxHash(approveTx);
       setStatus(RedPacketStatus.APPROVE_CONFIRMING);
@@ -174,6 +178,7 @@ export function useCreateRedPacket() {
         abi: RED_PACKET_ABI,
         functionName: "create",
         args: [SEPOLIA_USDC_ADDRESS, amountWei, count, isRandom],
+        gas: 300_000n,
       });
       setCreateTxHash(createTx);
       setStatus(RedPacketStatus.CREATE_CONFIRMING);

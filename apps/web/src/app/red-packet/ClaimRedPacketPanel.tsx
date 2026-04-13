@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type FC } from "react";
-import { useAccount } from "wagmi";
+import { useState, useEffect, type FC } from "react";
+import { useAccount, useReadContract } from "wagmi";
 import { useRedPacketInfo } from "./useRedPacketInfo";
 import { useClaimRedPacket } from "./useClaimRedPacket";
-import { ClaimStatus } from "./constant";
+import { ClaimStatus, RED_PACKET_ADDRESS, RED_PACKET_ABI } from "./constant";
 
 const ClaimRedPacketPanel: FC = () => {
   const { address } = useAccount();
@@ -23,7 +23,24 @@ const ClaimRedPacketPanel: FC = () => {
     reset: resetClaim,
   } = useClaimRedPacket();
 
-  const { info, isLoading: infoLoading } = useRedPacketInfo(queriedId);
+  const { info, isLoading: infoLoading, refetch: refetchInfo } = useRedPacketInfo(queriedId);
+
+  // 查询当前地址是否已领取过该红包
+  const { data: alreadyClaimed, refetch: refetchClaimed } = useReadContract({
+    address: RED_PACKET_ADDRESS,
+    abi: RED_PACKET_ABI,
+    functionName: "hasClaimed",
+    args: [queriedId ?? 0n, address ?? "0x0000000000000000000000000000000000000000"],
+    query: { enabled: !!queriedId && !!address && !!RED_PACKET_ADDRESS },
+  });
+
+  // 领取 / 退款成功后立即刷新红包状态
+  useEffect(() => {
+    if (claimStatus === ClaimStatus.SUCCESS) {
+      refetchInfo();
+      refetchClaimed();
+    }
+  }, [claimStatus, refetchInfo, refetchClaimed]);
 
   function handleQuery(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +60,8 @@ const ClaimRedPacketPanel: FC = () => {
     !!info &&
     !info.isFull &&
     !info.isExpired &&
-    !info.refunded;
+    !info.refunded &&
+    alreadyClaimed !== true;
 
   const canRefund =
     !!queriedId && !!info && isCreator && info.isExpired && !info.refunded && info.remainingAmount > 0n;
@@ -110,6 +128,12 @@ const ClaimRedPacketPanel: FC = () => {
             <span className="text-right font-mono">{info.remainingAmountFormatted} USDC</span>
             <span>Distribution</span>
             <span className="text-right">{info.isRandom ? "Random 🎲" : "Equal"}</span>
+            {alreadyClaimed === true && (
+              <>
+                <span>Your Status</span>
+                <span className="text-right text-blue-500 font-medium">✅ Already claimed</span>
+              </>
+            )}
             <span>Expiry</span>
             <span className="text-right">{formatExpiry(info.expiry)}</span>
           </div>

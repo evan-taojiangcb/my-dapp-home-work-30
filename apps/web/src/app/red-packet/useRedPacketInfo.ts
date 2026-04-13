@@ -32,7 +32,7 @@ export function useRedPacketInfo(packetId: bigint | undefined) {
     abi: RED_PACKET_ABI,
     functionName: "getPacket",
     args: [packetId ?? 0n],
-    query: { enabled },
+    query: { enabled, refetchInterval: enabled ? 8_000 : false },
   });
 
   let info: RedPacketInfo | undefined;

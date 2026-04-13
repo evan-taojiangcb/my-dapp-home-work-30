@@ -115,6 +115,7 @@ export function useClaimRedPacket() {
         abi: RED_PACKET_ABI,
         functionName: "claim",
         args: [packetId],
+        gas: 200_000n,
       });
       setTxHash(tx);
       setClaimStatus(ClaimStatus.CONFIRMING);
@@ -148,6 +149,7 @@ export function useClaimRedPacket() {
         abi: RED_PACKET_ABI,
         functionName: "refund",
         args: [packetId],
+        gas: 200_000n,
       });
       setTxHash(tx);
       setClaimStatus(ClaimStatus.CONFIRMING);
