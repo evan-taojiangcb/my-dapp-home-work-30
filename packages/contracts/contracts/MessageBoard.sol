@@ -8,7 +8,7 @@ contract MessageBoard {
         address indexed author,
         string title,
         string content,
-        uint256 createdAt
+        uint256 createdAt 
     );
 
     function writeMessage(
