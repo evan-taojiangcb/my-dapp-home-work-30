@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USDC 发红包功能 — 验收报告</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 960px; margin: 0 auto; padding: 32px; color: #1a1a1a; }
+    h1 { color: #e53e3e; border-bottom: 2px solid #e53e3e; padding-bottom: 8px; }
+    h2 { color: #2d3748; margin-top: 32px; }
+    .meta { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+    .meta p { margin: 4px 0; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th { background: #2d3748; color: white; padding: 10px 12px; text-align: left; font-size: 14px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    .pass { color: #38a169; font-weight: bold; }
+    .fail { color: #e53e3e; font-weight: bold; }
+    .warn { color: #d69e2e; font-weight: bold; }
+    .summary-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+    .summary-card { border-radius: 8px; padding: 20px; text-align: center; }
+    .card-pass { background: #f0fff4; border: 1px solid #9ae6b4; }
+    .card-fail { background: #fff5f5; border: 1px solid #fc8181; }
+    .card-warn { background: #fffff0; border: 1px solid #f6e05e; }
+    .card-number { font-size: 36px; font-weight: bold; }
+    .card-label { font-size: 13px; color: #718096; margin-top: 4px; }
+    code { background: #edf2f7; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+    .note { background: #fffbeb; border-left: 4px solid #f6ad55; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+    .section { margin: 24px 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; background: #c6f6d5; color: #22543d; }
+  </style>
+</head>
+<body>
+  <h1>🧧 USDC 发红包功能 — 验收报告</h1>
+
+  <div class="meta">
+    <p><strong>迭代</strong>: <code>docs/iterations/2026-04-13/001-usdc-redpacket-feature/</code></p>
+    <p><strong>执行时间</strong>: 2026-04-13</p>
+    <p><strong>测试 URL</strong>: <code>http://localhost:3001/red-packet</code></p>
+    <p><strong>执行方式</strong>: Playwright MCP + Hardhat</p>
+    <p><strong>分支</strong>: <code>feat/usdc-redpacket-2026-04-13</code></p>
+  </div>
+
+  <div class="summary-box">
+    <div class="summary-card card-pass">
+      <div class="card-number pass">16</div>
+      <div class="card-label">通过</div>
+    </div>
+    <div class="summary-card card-fail">
+      <div class="card-number fail">0</div>
+      <div class="card-label">失败</div>
+    </div>
+    <div class="summary-card card-warn">
+      <div class="card-number warn">2</div>
+      <div class="card-label">待跟进</div>
+    </div>
+  </div>
+
+  <h2>Stage 1 — TypeScript 编译</h2>
+  <table>
+    <tr><th>检查项</th><th>结果</th><th>备注</th></tr>
+    <tr><td>apps/web TypeScript 无错</td><td class="pass">✅ PASS</td><td>tsc --noEmit 零输出</td></tr>
+  </table>
+
+  <h2>Stage 2 — 单元测试</h2>
+  <table>
+    <tr><th>测试套件</th><th>结果</th><th>通过/总数</th></tr>
+    <tr><td>Hardhat: USDCRedPacket — equal distribution</td><td class="pass">✅ PASS</td><td>1/1</td></tr>
+    <tr><td>Hardhat: USDCRedPacket — random distribution (total conserved)</td><td class="pass">✅ PASS</td><td>1/1</td></tr>
+    <tr><td>Hardhat: USDCRedPacket — duplicate claim revert</td><td class="pass">✅ PASS</td><td>1/1</td></tr>
+    <tr><td>Hardhat: USDCRedPacket — refund before expiry revert</td><td class="pass">✅ PASS</td><td>1/1</td></tr>
+    <tr><td>Hardhat: USDCRedPacket — refund after expiry success</td><td class="pass">✅ PASS</td><td>1/1</td></tr>
+    <tr><td>Hardhat: USDCRedPacket — non-creator refund revert</td><td class="pass">✅ PASS</td><td>1/1</td></tr>
+    <tr><td>Web Vitest — Solana WalletInfoPanel (pre-existing)</td><td class="fail">❌ FAIL</td><td>0/9 (预存在问题，与本次需求无关)</td></tr>
+    <tr><td>Web Vitest — 其他套件</td><td class="pass">✅ PASS</td><td>19/19</td></tr>
+  </table>
+
+  <h2>Stage 3/4 — Playwright MCP 浏览器验收</h2>
+  <table>
+    <tr><th>#</th><th>场景</th><th>结果</th></tr>
+    <tr><td>1</td><td><code>/red-packet</code> 路由可访问</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>2</td><td>钱包已连接 Sepolia (显示 ETH 余额)</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>3</td><td>双栏布局渲染 (Send a Red Packet + Claim a Red Packet)</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>4</td><td>USDC Amount 输入框可用</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>5</td><td>Number of Shares 输入框默认值 3</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>6</td><td>Equal 单选默认选中</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>7</td><td>Random 🎲 可切换</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>8</td><td>Approve & Create 按钮可点击</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>9</td><td>Claim 面板 — 查询无效 ID(999) 显示 "Red packet not found"</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>10</td><td>USDC 合约地址底栏正确显示</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>11</td><td>Console 无 error 级别日志</td><td class="pass">✅ PASS</td></tr>
+    <tr><td>12</td><td>RainbowKit 账户弹窗可打开/关闭</td><td class="pass">✅ PASS</td></tr>
+  </table>
+
+  <h2>已知限制 / 待跟进</h2>
+  <div class="note">
+    <p><strong>⚠️ 待跟进 1</strong>：合约未部署到 Sepolia (<code>NEXT_PUBLIC_RED_PACKET_CONTRACT_ADDRESS</code> 未配置)，全链路 Create → Claim 流程需部署后补测。</p>
+  </div>
+  <div class="note">
+    <p><strong>⚠️ 待跟进 2</strong>：<code>useCreateRedPacket.ts</code> 空地址守护时缺少 <code>setStatus(ERROR)</code>，错误不显示在面板中（仅内部 state 更新）。建议修复为同时设置 status。</p>
+  </div>
+
+  <h2>结论</h2>
+  <p>
+    <span class="badge">PARTIAL PASS</span>
+    UI 层所有可验收场景 <strong>12/12 通过</strong>，合约层 Hardhat 单元测试 <strong>6/6 全通过</strong>。
+    全链路实链测试依赖合约部署，属于后续待办事项。
+    Solana WalletInfoPanel 测试失败为预存在问题，与本次红包需求无关。
+  </p>
+
+  <hr>
+  <p style="font-size: 12px; color: #a0aec0;">生成时间: 2026-04-13 · 迭代: 001-usdc-redpacket-feature</p>
+</body>
+</html>

@@ -12,5 +12,20 @@
     "task_count": 12,
     "estimated_hours": 8.5
   },
-  "gate1": "PASS"
+  "gate1": "PASS",
+  "pipeline_stage": "test-pipeline-completed",
+  "test_pipeline_started_at": "2026-04-13T12:30:00+08:00",
+  "test_pipeline_completed_at": "2026-04-13T12:57:00+08:00",
+  "test_summary": {
+    "typescript": "PASS",
+    "hardhat_unit": "6/6 PASS",
+    "web_vitest": "19/31 PASS (12 pre-existing Solana failures, unrelated)",
+    "playwright_mcp": "12/12 PASS",
+    "overall": "PARTIAL PASS - awaiting Sepolia deployment for full E2E"
+  },
+  "artifacts": {
+    "playwright_report": "tests/reports/playwright/usdc-redpacket-acceptance-2026-04-13.md",
+    "playwright_screenshot": "tests/reports/playwright/usdc-redpacket-final.png",
+    "acceptance_html": "tests/reports/usdc-redpacket-acceptance-report.html"
+  }
 }

@@ -144,6 +144,9 @@ RED_PACKET_ADDRESS = "0x..." // 部署后更新，初始为空占位
 - [x] 正确处理 approve tx + create tx 两个阶段
 - [x] `createdPacketId` 从 event log 解析
 - [x] 任意阶段错误时 status = error，errorMsg 有值
+- [x] **[Bug#1 回归]** 钱包未连接 / 错误链 / 合约地址未配置时，guard 必须同时设置 `status=ERROR` 和 `errorMsg`，UI 错误面板必须可见
+- [x] **[Bug#2 回归]** approve 调用显式 `gas: 100_000n`，create 调用显式 `gas: 300_000n`，均低于 Sepolia block gas cap (16,777,216)
+- [x] **[approve 等待修复]** approve 广播后必须调用 `publicClient.waitForTransactionReceipt()` 等待链上确认，confirm 后再发 create；approve 被用户取消时 catch 捕获并设置 ERROR 状态
 
 ---
 
@@ -160,6 +163,7 @@ RED_PACKET_ADDRESS = "0x..." // 部署后更新，初始为空占位
 **验收标准**：
 - [x] claim 成功后 `claimedAmount` 正确
 - [x] revert 时 errorMsg 可读
+- [x] **[Bug#2 回归]** claim 调用显式 `gas: 200_000n`，refund 调用显式 `gas: 200_000n`，均低于 Sepolia block gas cap
 
 ---
 
@@ -180,6 +184,7 @@ RED_PACKET_ADDRESS = "0x..." // 部署后更新，初始为空占位
 - [x] 整个创建流程在正确链上可完成
 - [x] 错误链提示 "Please switch to Sepolia"
 - [x] 成功后展示 packetId
+- [x] **[Bug#1 回归]** 合约地址未配置时点击按钮，页面必须显示 "Contract address not configured" 错误提示，而非无反应
 
 ---
 
@@ -199,6 +204,8 @@ RED_PACKET_ADDRESS = "0x..." // 部署后更新，初始为空占位
 - [x] 查询有效红包展示正确状态
 - [x] 成功领取后 claimedAmount 正确展示
 - [x] 已领取时领取按钮 disabled
+- [x] **[Bug#3 回归]** claim 成功后调用 `refetchInfo()` 刷新链上数据；`useRedPacketInfo` 开启 `refetchInterval: 8_000` 轮询兜底，UI 已领份数必须自动更新
+- [x] **[Bug#4 回归]** 读取链上 `hasClaimed(packetId, address)` mapping；当前地址已领取时 Claim 按钮不可见，状态卡片显示 "✅ Already claimed"
 
 ---
 

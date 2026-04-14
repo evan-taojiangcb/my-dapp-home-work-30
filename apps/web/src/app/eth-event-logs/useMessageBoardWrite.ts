@@ -3,6 +3,7 @@
 import {
   useAccount,
   useWaitForTransactionReceipt,
+  useWatchContractEvent,
   useWriteContract,
 } from "wagmi";
 import {
@@ -15,7 +16,8 @@ import {
 } from "./constant";
 
 import { abi as messageBoardAbi } from "@my-dapp-home-work-30/contracts/artifacts/contracts/MessageBoard.sol/MessageBoard.json";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { parseEventLogs } from "viem";
 
 type SubmitInput = {
   title: string;
@@ -34,10 +36,15 @@ export function useMessageBoardWrite() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined); // 获取 transaction 和 hash
   const [errorMsg, setErrorMsg] = useState<string | undefined>(undefined); // 获取错误信息
 
+  // 监听到的链上事件列表
+  // const [events, setEvents] = useState<
+  //   Array<{ author: string; title: string; content: string; createdAt: bigint }>
+  // >([]);
+
   // 判断当前链是否正确 我们在 Sepolia 上部署了 MessageBoard 合约，所以需要用户切换到 Sepolia 链才能正常使用写入功能
   const isWrongChain =
     typeof chainId === "number" && chainId !== MESSAGE_BOARD_CHAIN_ID; // Sepolia chainId
-  
+
   // 获取交易凭证信息
   const {
     data: receipt,
@@ -70,7 +77,7 @@ export function useMessageBoardWrite() {
       return;
     }
 
-    if(receipt.status === "success") {
+    if (receipt.status === "success") {
       setStatus(MessageBoardWriteStatus.SUCCESS);
     }
   }, [receipt, receiptError, status, receipt?.status]);
@@ -153,6 +160,40 @@ export function useMessageBoardWrite() {
     }
   }
 
+  // 第一种方式 实时监听事件，获取最新的链上事件日志。当有新的 MessageWritten 事件被触发时，onLogs 回调函数会被调用，我们可以在这里解析事件日志并更新组件状态以显示最新的消息列表。
+  useWatchContractEvent({
+    address: MESSAGE_BOARD_ADDRESS,
+    abi:messageBoardAbi,
+    eventName:"MessageWritten",
+    onLogs:(logs) => {
+      const newEvents = logs.map((log) => {
+        const { author, title, content, createdAt } = (log as any)?.args || {};
+        return { author, title, content, createdAt };
+      });
+      console.log("New events from watch:", newEvents);
+      // setEvents((prevEvents) => [...prevEvents, ...newEvents]);
+    }
+  })
+
+  //第二种方式 在交易完成后解析事件日志，获取本次交易触发的事件详情。当 receipt 发生变化时，我们检查交易是否成功，如果成功，我们使用 parseEventLogs 函数从交易收据中的日志中提取 MessageWritten 事件的信息，并更新组件状态以显示最新的消息列表。
+  useEffect(() => {
+    if (!receipt) return;
+    if (receipt.status !== "success") return; // 只有当交易成功时，我们才去解析事件日志，因为只有成功的交易才会在链上产生有效的事件
+
+    const parsedEvents = parseEventLogs({
+      abi: messageBoardAbi,
+      logs: receipt.logs,
+      eventName: "MessageWritten",
+    });
+
+    const newEvents = parsedEvents.map((log) => {
+      const { author, title, content, createdAt } = (log as any)?.args || {};
+      return { author, title, content, createdAt };
+    });
+    console.log("Parsed events from receipt:", newEvents);
+    // setEvents(newEvents);
+  }, [receipt]);
+
   return {
     address,
     chainId,
@@ -163,5 +204,6 @@ export function useMessageBoardWrite() {
     errorMsg,
     submit,
     reset,
+    // events,
   };
 }

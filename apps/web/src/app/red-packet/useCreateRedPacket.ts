@@ -5,8 +5,9 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
+  usePublicClient,
 } from "wagmi";
-import { parseUnits, parseEventLogs, formatUnits } from "viem";
+import { parseUnits, parseEventLogs } from "viem";
 import {
   SEPOLIA_USDC_ADDRESS,
   RED_PACKET_ADDRESS,
@@ -16,10 +17,15 @@ import {
   USDC_DECIMALS,
   RedPacketStatus,
 } from "./constant";
+import {
+  getCreateRedPacketErrorMessage,
+  getInsufficientUsdcBalanceMessage,
+} from "./useCreateRedPacket.helpers";
 
 export function useCreateRedPacket() {
   const { address, chainId, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
 
   const [status, setStatus] = useState<RedPacketStatus>(RedPacketStatus.IDLE);
   const [errorMsg, setErrorMsg] = useState<string | undefined>(undefined);
@@ -40,7 +46,6 @@ export function useCreateRedPacket() {
   const {
     data: approveReceipt,
     error: approveReceiptError,
-    isLoading: approveReceiptLoading,
   } = useWaitForTransactionReceipt({
     hash: approveTxHash,
     query: {
@@ -54,7 +59,6 @@ export function useCreateRedPacket() {
   const {
     data: createReceipt,
     error: createReceiptError,
-    isLoading: createReceiptLoading,
   } = useWaitForTransactionReceipt({
     hash: createTxHash,
     query: {
@@ -139,13 +143,33 @@ export function useCreateRedPacket() {
       setErrorMsg("Contract address not configured");
       return;
     }
+    if (!publicClient) {
+      setStatus(RedPacketStatus.ERROR);
+      setErrorMsg("Public client not available");
+      return;
+    }
 
     const amountWei = parseUnits(amountUsdc, USDC_DECIMALS);
+    let walletBalance: bigint | undefined;
 
     try {
+      setErrorMsg(undefined);
+
+      walletBalance = await publicClient.readContract({
+        address: SEPOLIA_USDC_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      });
+
+      if (walletBalance < amountWei) {
+        throw new Error(
+          getInsufficientUsdcBalanceMessage(walletBalance, amountWei),
+        );
+      }
+
       // Phase 1: approve
       setStatus(RedPacketStatus.APPROVING);
-      setErrorMsg(undefined);
 
       const approveTx = await writeContractAsync({
         address: SEPOLIA_USDC_ADDRESS,
@@ -157,17 +181,22 @@ export function useCreateRedPacket() {
       setApproveTxHash(approveTx);
       setStatus(RedPacketStatus.APPROVE_CONFIRMING);
 
-      // Manually wait for approval so we can proceed inline
-      // (the useEffect above also handles errors after the fact)
-      await new Promise<void>((resolve, reject) => {
-        const poll = setInterval(async () => {
-          // Resolved by the useEffect via status changes isn't clean;
-          // instead, import publicClient if needed. For simplicity we
-          // fire create() immediately after the sign succeeds since
-          // wagmi's writeContractAsync returns once the tx is submitted.
-          clearInterval(poll);
-          resolve();
-        }, 500);
+      // Wait for approve tx to be confirmed on-chain before calling create,
+      // otherwise the allowance won't exist yet and create will revert.
+      const approveReceipt = await publicClient.waitForTransactionReceipt({
+        hash: approveTx,
+      });
+      if (approveReceipt.status === "reverted") {
+        throw new Error("Approve transaction was reverted");
+      }
+
+      await publicClient.simulateContract({
+        account: address,
+        address: RED_PACKET_ADDRESS,
+        abi: RED_PACKET_ABI,
+        functionName: "create",
+        args: [SEPOLIA_USDC_ADDRESS, amountWei, count, isRandom],
+        gas: 300_000n,
       });
 
       // Phase 2: create
@@ -184,7 +213,12 @@ export function useCreateRedPacket() {
       setStatus(RedPacketStatus.CREATE_CONFIRMING);
     } catch (err) {
       setStatus(RedPacketStatus.ERROR);
-      setErrorMsg(err instanceof Error ? err.message : String(err));
+      setErrorMsg(
+        getCreateRedPacketErrorMessage(err, {
+          balance: walletBalance,
+          requiredAmount: amountWei,
+        }),
+      );
     }
   }
 
